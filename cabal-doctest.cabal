@@ -9,7 +9,7 @@ description:
   See <https://github.com/haskell/cabal/issues/2327 Cabal/2327> for the progress
   of @cabal doctest@, i.e. whether this library is obsolete.
 
-homepage:            https://github.com/phadej/cabal-doctests
+homepage:            https://github.com/phadej/cabal-doctest
 license:             BSD3
 license-file:        LICENSE
 author:              Oleg Grenrus <oleg.grenrus@iki.fi>
