@@ -29,7 +29,7 @@
 -- @
 --
 -- /Note:/ you don't need to depend on @Cabal@  if you use only
--- 'defaultMainWithDoctests' in the @Setup.hs".
+-- 'defaultMainWithDoctests' in the @Setup.hs@.
 --
 module Distribution.Extra.Doctest (
     defaultMainWithDoctests,
