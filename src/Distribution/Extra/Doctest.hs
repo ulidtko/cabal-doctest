@@ -25,10 +25,15 @@
 -- custom-setup
 --  setup-depends:
 --    base >= 4 && <5,
---    Cabal >= 1.10 && <2.1,
 --    cabal-doctest >= 1 && <1.1
 -- @
+--
+-- /Note:/ you don't need to depend on @Cabal@  if you use only
+-- 'defaultMainWithDoctests' in the @Setup.hs".
+--
 module Distribution.Extra.Doctest (
+    defaultMainWithDoctests,
+    doctestsUserHooks,
     generateBuildModule,
     ) where
 
@@ -88,6 +93,30 @@ makeAbsolute p | isAbsolute p = return p
     return $ cwd </> p
 #endif
 
+-- | A default main with doctests:
+--
+-- @
+-- import Distribution.Extra.Doctest
+--        (defaultMainWithDoctests)
+--
+-- main :: IO ()
+-- main = defaultMainWithDoctests "doctests"
+-- @
+defaultMainWithDoctests
+    :: String  -- ^ doctests test-suite name
+    -> IO ()
+defaultMainWithDoctests = defaultMainWithHooks . doctestsUserHooks
+
+-- | 'simpleUserHooks' with 'generateBuildModule' prepended to the 'buildHook'.
+doctestsUserHooks
+    :: String  -- ^ doctests test-suite name
+    -> UserHooks
+doctestsUserHooks testsuiteName = simpleUserHooks
+    { buildHook = \pkg lbi hooks flags -> do
+       generateBuildModule testsuiteName flags pkg lbi
+       buildHook simpleUserHooks pkg lbi hooks flags
+    }
+
 -- | Generate a build module for the test suite.
 --
 -- @
@@ -104,7 +133,7 @@ makeAbsolute p | isAbsolute p = return p
 --     }
 -- @
 generateBuildModule
-    :: String
+    :: String -- ^ doctests test-suite name
     -> BuildFlags -> PackageDescription -> LocalBuildInfo -> IO ()
 generateBuildModule testSuiteName flags pkg lbi = do
   let verbosity = fromFlag (buildVerbosity flags)
