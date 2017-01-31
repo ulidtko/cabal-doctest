@@ -59,6 +59,10 @@ Notes
   you have to use `explicit-setup-deps` setting in your `stack.yaml`.
   ([stack/GH-2094](https://github.com/commercialhaskell/stack/issues/2094))
 
+* There is [an issue in the Cabal issue tracker](https://github.com/haskell/cabal/issues/2327 Cabal/2327)
+  about adding `cabal doctest` command. After that command is implemented,
+  this library will be deprecated.
+
 Copyright
 =========
 
