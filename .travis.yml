@@ -98,3 +98,7 @@ script:
    else echo "= $T FAILED ="; RC=false; fi; done; $RC
 
 # EOF
+
+branches:
+  only:
+    - master
