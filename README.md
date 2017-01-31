@@ -48,6 +48,17 @@ main = do
     args = flags ++ pkgs ++ module_sources
 ```
 
+Notes
+=====
+
+* `custom-setup` section is supported starting from `cabal-install-1.24`.
+  For older `cabal-install's` you have to install custom setup dependencies
+  manually.
+
+* `stack` respects `custom-setup` starting from version 1.3.3. Before that
+  you have to use `explicit-setup-deps` setting in your `stack.yaml`.
+  ([stack/GH-2094](https://github.com/commercialhaskell/stack/issues/2094))
+
 Copyright
 =========
 
