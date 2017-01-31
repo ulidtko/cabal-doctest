@@ -26,7 +26,8 @@ tested-with:
   GHC==7.6.3,
   GHC==7.8.4,
   GHC==7.10.3,
-  GHC==8.0.2
+  GHC==8.0.2,
+  GHC==8.1.*
 
 library
   exposed-modules:     Distribution.Extra.Doctest

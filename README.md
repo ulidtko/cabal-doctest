@@ -15,7 +15,6 @@ section in your `.cabal` file. For example:
 custom-setup
  setup-depends:
    base >= 4 && <5,
-   Cabal >= 1.10 && <2.1,
    cabal-doctest >= 1 && <1.1
 ```
 
@@ -25,15 +24,10 @@ file. Now put this into your `Setup.hs` file:
 ```haskell
 module Main where
 
-import Distribution.Extra.Doctest (generateBuildModule)
-import Distribution.Simple (defaultMainWithHooks, UserHooks(..), simpleUserHooks)
+import Distribution.Extra.Doctest (defaultMainWithDoctests)
 
 main :: IO ()
-main = defaultMainWithHooks simpleUserHooks
-  { buildHook = \pkg lbi hooks flags -> do
-     generateBuildModule "doctests" flags pkg lbi
-     buildHook simpleUserHooks pkg lbi hooks flags
-  }
+main = defaultMainWithDoctests "doctests"
 ```
 
 When you build your project, this `Setup` will generate a `Build_doctests`
