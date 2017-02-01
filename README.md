@@ -15,8 +15,12 @@ section in your `.cabal` file. For example:
 custom-setup
  setup-depends:
    base >= 4 && <5,
+   Cabal,
    cabal-doctest >= 1 && <1.1
 ```
+
+/Note:/ `Cabal` dependency is needed because of
+[Cabal/GH-4288](https://github.com/haskell/cabal/issues/4288) bug.
 
 You'll also need to specify `build-type: Custom` at the top of the `.cabal`
 file. Now put this into your `Setup.hs` file:
@@ -59,7 +63,7 @@ Notes
   you have to use `explicit-setup-deps` setting in your `stack.yaml`.
   ([stack/GH-2094](https://github.com/commercialhaskell/stack/issues/2094))
 
-* There is [an issue in the Cabal issue tracker](https://github.com/haskell/cabal/issues/2327 Cabal/2327)
+* There is [an issue in the Cabal issue tracker](https://github.com/haskell/cabal/issues/2327)
   about adding `cabal doctest` command. After that command is implemented,
   this library will be deprecated.
 
