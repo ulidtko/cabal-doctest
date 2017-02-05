@@ -10,13 +10,11 @@ maintainer:          Oleg Grenrus <oleg.grenrus@iki.fi>
 copyright:           (c) 2017 Oleg Grenrus
 category:            Example
 build-type:          Custom
--- We should specify >= 1.24
--- but if we use cabal new-build, it's not strictly necessary
-cabal-version:       >=1.10
+cabal-version:       >=1.24
 
 custom-setup
   setup-depends:
-    base, Cabal, cabal-doctest
+    base, Cabal, cabal-doctest >=1.0.1 && <1.1
 
 library
   exposed-modules:     Example
