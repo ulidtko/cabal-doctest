@@ -10,7 +10,9 @@ maintainer:          Oleg Grenrus <oleg.grenrus@iki.fi>
 copyright:           (c) 2017 Oleg Grenrus
 category:            Example
 build-type:          Custom
-cabal-version:       >=1.24
+-- We should specify >= 1.24
+-- but if we use cabal new-build, it's not strictly necessary
+cabal-version:       >=1.10
 
 custom-setup
   setup-depends:
