@@ -162,6 +162,9 @@ generateBuildModule testSuiteName flags pkg lbi = do
     iArgs <- mapM (fmap ("-i"++) . makeAbsolute) $ libAutogenDir : hsSourceDirs libBI
     includeArgs <- mapM (fmap ("-I"++) . makeAbsolute) $ includeDirs libBI
 
+    -- default-extensions
+    let extensionArgs = map (("-X"++) . display) $ defaultExtensions libBI
+
     -- CPP includes, i.e. include cabal_macros.h
     let cppFlags = map ("-optP"++) $
             [ "-include", libAutogenDir ++ "/cabal_macros.h" ]
@@ -186,7 +189,7 @@ generateBuildModule testSuiteName flags pkg lbi = do
         , "pkgs = " ++ (show $ formatDeps $ testDeps libcfg suitecfg)
         , ""
         , "flags :: [String]"
-        , "flags = " ++ show (iArgs ++ includeArgs ++ dbFlags ++ cppFlags)
+        , "flags = " ++ show (iArgs ++ includeArgs ++ dbFlags ++ cppFlags ++ extensionArgs)
         , ""
         , "module_sources :: [String]"
         , "module_sources = " ++ show (map display module_sources)
