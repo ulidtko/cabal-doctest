@@ -8,6 +8,8 @@ A `Setup.hs` helper for running `doctests`.
 Example Usage
 =============
 
+See [https://github.com/phadej/cabal-doctest/tree/master/example] for an example package.
+
 To use this library in your `Setup.hs`, you should specify a `custom-setup`
 section in your `.cabal` file. For example:
 
@@ -66,6 +68,11 @@ Notes
 * There is [an issue in the Cabal issue tracker](https://github.com/haskell/cabal/issues/2327)
   about adding `cabal doctest` command. After that command is implemented,
   this library will be deprecated.
+
+* If your library contains `cbits`, you might need to depend on the library
+  itself in `doctests` test-suite. We aren't sure whether this a bug or not.
+  See [#5 issue](https://github.com/phadej/cabal-doctest/issues/5) for longer
+  explanation.
 
 Copyright
 =========
