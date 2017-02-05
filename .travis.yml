@@ -105,9 +105,10 @@ script:
    else echo "= $T FAILED ="; RC=false; fi; done; $RC
 
  # try to build example as well
- - cp -r $ROOTDIR/example example
- - "echo 'packages: . example/' > cabal.project"
- - cabal new-build -w ${HC} --enable-tests example:example example:doctests
+ - test ! $HC = "ghc-8.0.2" || cp -r $ROOTDIR/example example
+ - "test ! $HC = 'ghc-8.0.2' || echo 'packages: . example/' > cabal.project"
+ - test ! $HC = "ghc-8.0.2" || cabal new-build -w ${HC} --enable-tests example:example example:doctests
+ - test ! $HC = "ghc-8.0.2" || $(find dist-newstyle -type f -name doctests)
 
 # EOF
 
