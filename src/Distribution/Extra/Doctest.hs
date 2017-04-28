@@ -5,11 +5,11 @@
 --
 -- @
 -- module Main where
--- 
+--
 -- import Build_doctests (flags, pkgs, module_sources)
 -- import Data.Foldable (traverse_)
 -- import Test.Doctest (doctest)
--- 
+--
 -- main :: IO ()
 -- main = do
 --     traverse_ putStrLn args -- optionally print arguments
@@ -18,7 +18,7 @@
 --     args = flags ++ pkgs ++ module_sources
 -- @
 --
--- To use this library in the @Setup.hs@, you should specify a @custom-setup@ 
+-- To use this library in the @Setup.hs@, you should specify a @custom-setup@
 -- section in the cabal file, for example:
 --
 -- @
@@ -171,6 +171,11 @@ generateBuildModule testSuiteName flags pkg lbi = do
             ++ cppOptions libBI
 
     withTestLBI pkg lbi $ \suite suitecfg -> when (testName suite == fromString testSuiteName) $ do
+      let testBI = testBuildInfo suite
+      -- TODO: `words` is not proper parser (no support for quotes)
+      let additionalFlags = maybe [] words
+            $ lookup "x-doctest-options"
+            $ customFieldsBI testBI
 
       -- get and create autogen dir
 #if MIN_VERSION_Cabal(1,25,0)
@@ -189,7 +194,14 @@ generateBuildModule testSuiteName flags pkg lbi = do
         , "pkgs = " ++ (show $ formatDeps $ testDeps libcfg suitecfg)
         , ""
         , "flags :: [String]"
-        , "flags = " ++ show (iArgs ++ includeArgs ++ dbFlags ++ cppFlags ++ extensionArgs)
+        , "flags = " ++ show (concat
+          [ iArgs
+          , includeArgs
+          , dbFlags
+          , cppFlags
+          , extensionArgs
+          , additionalFlags
+          ])
         , ""
         , "module_sources :: [String]"
         , "module_sources = " ++ show (map display module_sources)
