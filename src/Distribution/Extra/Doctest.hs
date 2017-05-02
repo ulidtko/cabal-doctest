@@ -76,6 +76,10 @@ import System.FilePath
 import Distribution.Simple.BuildPaths
        (autogenComponentModulesDir)
 #endif
+#if MIN_VERSION_Cabal(2,0,0)
+import Distribution.Types.MungedPackageId
+       (MungedPackageId)
+#endif
 
 #if MIN_VERSION_directory(1,2,2)
 import System.Directory
@@ -217,7 +221,13 @@ generateBuildModule testSuiteName flags pkg lbi = do
     formatOne (installedPkgId, pkgId)
       -- The problem is how different cabal executables handle package databases
       -- when doctests depend on the library
-      | packageId pkg == pkgId = "-package=" ++ display pkgId
+      --
+      -- If the pkgId is current package, we don't output the full package-id
+      -- but only the name
+      --
+      -- Because of MungedPackageId we compare display version of identifiers
+      -- not the identifiers themfselves.
+      | display (packageId pkg) == display pkgId = "-package=" ++ display pkgId
       | otherwise              = "-package-id=" ++ display installedPkgId
 
     -- From Distribution.Simple.Program.GHC
@@ -257,5 +267,11 @@ generateBuildModule testSuiteName flags pkg lbi = do
        isSpecific (SpecificPackageDB _) = True
        isSpecific _                     = False
 
-testDeps :: ComponentLocalBuildInfo -> ComponentLocalBuildInfo -> [(InstalledPackageId, PackageId)]
+-- | In compat settings it's better to omit the type-signature
+testDeps :: ComponentLocalBuildInfo -> ComponentLocalBuildInfo
+#if MIN_VERSION_Cabal(2,0,0)
+         -> [(InstalledPackageId, MungedPackageId)]
+#else
+         -> [(InstalledPackageId, PackageId)]
+#endif
 testDeps xs ys = nub $ componentPackageDeps xs ++ componentPackageDeps ys
