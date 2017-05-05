@@ -1,8 +1,8 @@
-# 1.0.2 -- 2017-04-xx
+# 1.0.1 -- 2017-05-05
 
-* Add support for `x-doctest-options` cabal field
+* Add support for `x-doctest-options` cabal-file field
 
-# 1.0.1 -- 2017-02-06
+* Proper support for GHC-8.2.1 & Cabal-2.0.0.0
 
 * Add support to `default-extensions` in library.
 
