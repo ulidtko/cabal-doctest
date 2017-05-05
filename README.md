@@ -74,6 +74,9 @@ Notes
   See [#5 issue](https://github.com/phadej/cabal-doctest/issues/5) for longer
   explanation.
 
+* You can use `x-doctest-options` field in `test-suite doctests` to
+  pass additional flags to the `doctest`.
+
 Copyright
 =========
 

@@ -5,11 +5,11 @@
 --
 -- @
 -- module Main where
--- 
+--
 -- import Build_doctests (flags, pkgs, module_sources)
 -- import Data.Foldable (traverse_)
 -- import Test.Doctest (doctest)
--- 
+--
 -- main :: IO ()
 -- main = do
 --     traverse_ putStrLn args -- optionally print arguments
@@ -18,7 +18,7 @@
 --     args = flags ++ pkgs ++ module_sources
 -- @
 --
--- To use this library in the @Setup.hs@, you should specify a @custom-setup@ 
+-- To use this library in the @Setup.hs@, you should specify a @custom-setup@
 -- section in the cabal file, for example:
 --
 -- @
@@ -75,6 +75,10 @@ import System.FilePath
 #if MIN_VERSION_Cabal(1,25,0)
 import Distribution.Simple.BuildPaths
        (autogenComponentModulesDir)
+#endif
+#if MIN_VERSION_Cabal(2,0,0)
+import Distribution.Types.MungedPackageId
+       (MungedPackageId)
 #endif
 
 #if MIN_VERSION_directory(1,2,2)
@@ -171,6 +175,11 @@ generateBuildModule testSuiteName flags pkg lbi = do
             ++ cppOptions libBI
 
     withTestLBI pkg lbi $ \suite suitecfg -> when (testName suite == fromString testSuiteName) $ do
+      let testBI = testBuildInfo suite
+      -- TODO: `words` is not proper parser (no support for quotes)
+      let additionalFlags = maybe [] words
+            $ lookup "x-doctest-options"
+            $ customFieldsBI testBI
 
       -- get and create autogen dir
 #if MIN_VERSION_Cabal(1,25,0)
@@ -189,7 +198,14 @@ generateBuildModule testSuiteName flags pkg lbi = do
         , "pkgs = " ++ (show $ formatDeps $ testDeps libcfg suitecfg)
         , ""
         , "flags :: [String]"
-        , "flags = " ++ show (iArgs ++ includeArgs ++ dbFlags ++ cppFlags ++ extensionArgs)
+        , "flags = " ++ show (concat
+          [ iArgs
+          , includeArgs
+          , dbFlags
+          , cppFlags
+          , extensionArgs
+          , additionalFlags
+          ])
         , ""
         , "module_sources :: [String]"
         , "module_sources = " ++ show (map display module_sources)
@@ -205,7 +221,13 @@ generateBuildModule testSuiteName flags pkg lbi = do
     formatOne (installedPkgId, pkgId)
       -- The problem is how different cabal executables handle package databases
       -- when doctests depend on the library
-      | packageId pkg == pkgId = "-package=" ++ display pkgId
+      --
+      -- If the pkgId is current package, we don't output the full package-id
+      -- but only the name
+      --
+      -- Because of MungedPackageId we compare display version of identifiers
+      -- not the identifiers themfselves.
+      | display (packageId pkg) == display pkgId = "-package=" ++ display pkgId
       | otherwise              = "-package-id=" ++ display installedPkgId
 
     -- From Distribution.Simple.Program.GHC
@@ -245,5 +267,11 @@ generateBuildModule testSuiteName flags pkg lbi = do
        isSpecific (SpecificPackageDB _) = True
        isSpecific _                     = False
 
-testDeps :: ComponentLocalBuildInfo -> ComponentLocalBuildInfo -> [(InstalledPackageId, PackageId)]
+-- | In compat settings it's better to omit the type-signature
+testDeps :: ComponentLocalBuildInfo -> ComponentLocalBuildInfo
+#if MIN_VERSION_Cabal(2,0,0)
+         -> [(InstalledPackageId, MungedPackageId)]
+#else
+         -> [(InstalledPackageId, PackageId)]
+#endif
 testDeps xs ys = nub $ componentPackageDeps xs ++ componentPackageDeps ys
