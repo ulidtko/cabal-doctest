@@ -8,7 +8,10 @@ A `Setup.hs` helper for running `doctests`.
 Example Usage
 =============
 
-See [https://github.com/phadej/cabal-doctest/tree/master/example] for an example package.
+See [https://github.com/phadej/cabal-doctest/tree/master/example] for an
+example package. (Note that the example requires `Cabal-1.24` or later, but
+you can relax this bound safely, although running doctests won't be supported
+on versions of `Cabal` older than 1.24.)
 
 To use this library in your `Setup.hs`, you should specify a `custom-setup`
 section in your `.cabal` file. For example:
