@@ -199,10 +199,21 @@ generateBuildModule testSuiteName flags pkg lbi = do
 
     withTestLBI pkg lbi $ \suite suitecfg -> when (testName suite == fromString testSuiteName) $ do
       let testBI = testBuildInfo suite
+
       -- TODO: `words` is not proper parser (no support for quotes)
       let additionalFlags = maybe [] words
             $ lookup "x-doctest-options"
             $ customFieldsBI testBI
+
+      let additionalModules = maybe [] words
+            $ lookup "x-doctest-modules"
+            $ customFieldsBI testBI
+
+      let additionalDirs' = maybe [] words
+            $ lookup "x-doctest-source-dirs"
+            $ customFieldsBI testBI
+      additionalDirs <- mapM (fmap ("-i" ++) . makeAbsolute) additionalDirs'
+
 
       -- get and create autogen dir
 #if MIN_VERSION_Cabal(1,25,0)
@@ -223,6 +234,7 @@ generateBuildModule testSuiteName flags pkg lbi = do
         , "flags :: [String]"
         , "flags = " ++ show (concat
           [ iArgs
+          , additionalDirs
           , includeArgs
           , dbFlags
           , cppFlags
@@ -231,7 +243,7 @@ generateBuildModule testSuiteName flags pkg lbi = do
           ])
         , ""
         , "module_sources :: [String]"
-        , "module_sources = " ++ show (map display module_sources)
+        , "module_sources = " ++ show (map display module_sources ++ additionalModules)
         ]
   where
     -- we do this check in Setup, as then doctests don't need to depend on Cabal
