@@ -105,6 +105,9 @@ Notes
 * For `build-type: Configure` packages, you can use
   `defaultMainAutoconfWithDoctests` function to make custom `Setup.hs` script.
 
+* If you use the default `.` in `hs-source-dirs`, then running `doctests`
+  might fail with weird errors (ambigious module errors). Workaround is
+  to move sources under `src/` or some non-top-level directory.
 
 Copyright
 ---------
