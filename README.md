@@ -1,12 +1,12 @@
 cabal-doctest
--------------
+=============
 
 [![Hackage](https://img.shields.io/hackage/v/cabal-doctest.svg)](https://hackage.haskell.org/package/cabal-doctest) [![Build Status](https://travis-ci.org/phadej/cabal-doctest.svg?branch=master)](https://travis-ci.org/phadej/cabal-doctest)
 
 A `Setup.hs` helper for running `doctests`.
 
 Example Usage
-=============
+-------------
 
 See [https://github.com/phadej/cabal-doctest/tree/master/example] for an
 example package. (Note that the example requires `Cabal-1.24` or later, but
@@ -57,8 +57,30 @@ main = do
     args = flags ++ pkgs ++ module_sources
 ```
 
+Additional configuration
+------------------------
+
+The `cabal-doctest` based `Setup.hs` supports few extensions fields
+in `pkg.cabal` files to customise the `doctest` runner behaviour, without
+customising the default `doctest.hs`.
+
+```
+test-suite doctests:
+  if impl(ghc >= 8.0)
+    x-doctest-options: -fdiagnostics-color=never
+  x-doctest-source-dirs: test
+  x-doctest-modules: Servant.Utils.LinksSpec
+
+  ...
+ ```
+
+* `x-doctest-options` Additional arguments passed into `doctest` command.
+* `x-doctest-modules` Additional modules to `doctest`. May be useful if you
+  have `doctest` in test or executables (i.e not default library complonent).
+* `x-doctest-src-dirs` Additional source directories to look for the modules.
+
 Notes
-=====
+-----
 
 * `custom-setup` section is supported starting from `cabal-install-1.24`.
   For older `cabal-install's` you have to install custom setup dependencies
@@ -80,8 +102,12 @@ Notes
 * You can use `x-doctest-options` field in `test-suite doctests` to
   pass additional flags to the `doctest`.
 
+* For `build-type: Configure` packages, you can use
+  `defaultMainAutoconfWithDoctests` function to make custom `Setup.hs` script.
+
+
 Copyright
-=========
+---------
 
 Copyright 2017 Oleg Grenrus.
 
