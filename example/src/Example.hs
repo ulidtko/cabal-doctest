@@ -17,3 +17,10 @@ f _x y = y
 -- False
 toBool :: CBool -> Bool
 toBool b = b True False
+
+-- | Convert from concrete 'Bool'.
+--
+-- prop> toBool (fromBool b) == b
+fromBool :: Bool -> CBool
+fromBool True  = t
+fromBool False = f
