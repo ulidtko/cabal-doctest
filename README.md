@@ -72,7 +72,7 @@ test-suite doctests:
   x-doctest-modules: Servant.Utils.LinksSpec
 
   ...
- ```
+```
 
 * `x-doctest-options` Additional arguments passed into `doctest` command.
 * `x-doctest-modules` Additional modules to `doctest`. May be useful if you
