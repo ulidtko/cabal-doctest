@@ -72,7 +72,7 @@ test-suite doctests:
   x-doctest-modules: Servant.Utils.LinksSpec
 
   ...
- ```
+```
 
 * `x-doctest-options` Additional arguments passed into `doctest` command.
 * `x-doctest-modules` Additional modules to `doctest`. May be useful if you
@@ -108,6 +108,32 @@ Notes
 * If you use the default `.` in `hs-source-dirs`, then running `doctests`
   might fail with weird errors (ambigious module errors). Workaround is
   to move sources under `src/` or some non-top-level directory.
+
+* `extensions:` field isn't supported. Upgrade your `.cabal` file to use at least
+  `cabal-version: >= 1.10` and use `default-extensions` or `other-extensions`.
+
+* If you use QuickCheck properties (`prop>`) in your doctests,
+  the `test-suite doctest` should depend on `QuickCheck` and `template-haskell`.
+  This is a little HACK: These dependencies aren't needed to build the
+  `doctests` test-suite executable.  However, as we let `Cabal` resolve
+  dependencies, we can pass the resolved (and installed!) package identifiers to
+  to the `doctest` command.  This way, `QuickCheck` and `template-haskell` are
+  available to `doctest`, otherwise you'll get errors like:
+
+```
+    Variable not in scope:
+      mkName
+        :: [Char]
+           -> template-haskell-2.11.1.0:Language.Haskell.TH.Syntax.Name
+```
+
+or
+
+```
+    Variable not in scope:
+      polyQuickCheck
+        :: Language.Haskell.TH.Syntax.Name -> Language.Haskell.TH.Lib.ExpQ
+```
 
 Copyright
 ---------
