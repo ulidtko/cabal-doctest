@@ -63,6 +63,7 @@ before_install:
  - PATH=/opt/ghc/bin:/opt/ghc-ppa-tools/bin:$PATH
  - PKGNAME='cabal-doctest'
  - ROOTDIR=$(pwd)
+ - GLASGOW_HASKELL=$(echo $HC | sed -E 's/ghc-([0-9])\.([0-9]+)\..*/\1 * 100 + \2/' | xargs expr)
 
 install:
  - cabal --version
@@ -93,11 +94,11 @@ script:
  - "echo 'packages: .' > cabal.project"
  # this builds all libraries and executables (without tests/benchmarks)
  - rm -f cabal.project.freeze
- - cabal new-build -w ${HC} --disable-tests --disable-benchmarks
- - cabal new-build -w ${HC} --disable-tests --disable-benchmarks --constraint='Cabal installed' --constraint='directory installed'
+ - cabal new-build -w ${HC} --disable-tests --disable-benchmarks all
+ - cabal new-build -w ${HC} --disable-tests --disable-benchmarks --constraint='Cabal installed' --constraint='directory installed' all
  # this builds all libraries and executables (including tests/benchmarks)
  # - rm -rf ./dist-newstyle
- - cabal new-build -w ${HC} ${TEST} ${BENCH}
+ - cabal new-build -w ${HC} ${TEST} ${BENCH} all
 
  # there's no 'cabal new-test' yet, so let's emulate for now
  - TESTS=( $(awk 'tolower($0) ~ /^test-suite / { print $2 }' *.cabal) )
@@ -108,10 +109,10 @@ script:
    else echo "= $T FAILED ="; RC=false; fi; done; $RC
 
  # try to build example as well
- - test ! $HC = "ghc-8.0.2" || cp -r $ROOTDIR/example example
- - "test ! $HC = 'ghc-8.0.2' || echo 'packages: . example/' > cabal.project"
- - test ! $HC = "ghc-8.0.2" || cabal new-build -w ${HC} --enable-tests example:example example:doctests
- - test ! $HC = "ghc-8.0.2" || $(find dist-newstyle -type f -name doctests)
+ - "test $GLASGOW_HASKELL -lt 800 || cp -r $ROOTDIR/example example"
+ - "test $GLASGOW_HASKELL -lt 800 || echo 'packages: . example/' > cabal.project"
+ - "test $GLASGOW_HASKELL -lt 800 || cabal new-build -w ${HC} --enable-tests all"
+ - "test $GLASGOW_HASKELL -lt 800 || $(find dist-newstyle -type f -name doctests)"
 
 # EOF
 
