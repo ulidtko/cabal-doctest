@@ -63,6 +63,7 @@ before_install:
  - PATH=/opt/ghc/bin:/opt/ghc-ppa-tools/bin:$PATH
  - PKGNAME='cabal-doctest'
  - ROOTDIR=$(pwd)
+ - GLASGOW_HASKELL=$(echo $HC | sed -E 's/ghc-([0-9])\.([0-9]+)\..*/\1 * 100 + \2/' | xargs expr)
 
 install:
  - cabal --version
@@ -107,12 +108,11 @@ script:
    if dist-newstyle/build/**/$SRC_BASENAME/**/build/$T/$T; then echo "= $T OK =";
    else echo "= $T FAILED ="; RC=false; fi; done; $RC
 
- - GLASGOW_HASKELL=$(echo $HC | sed -E 's/ghc-([0-9])\.([0-9]+)\..*/\1 * 100 + \2/' | xargs expr)
  # try to build example as well
- - "test $GLASGOW_HASKELL -lt 710 || cp -r $ROOTDIR/example example"
- - "test $GLASGOW_HASKELL -lt 710 || echo 'packages: . example/' > cabal.project"
- - "test $GLASGOW_HASKELL -lt 710 || cabal new-build -w ${HC} --enable-tests all"
- - "test $GLASGOW_HASKELL -lt 710 || $(find dist-newstyle -type f -name doctests)"
+ - "test $GLASGOW_HASKELL -lt 800 || cp -r $ROOTDIR/example example"
+ - "test $GLASGOW_HASKELL -lt 800 || echo 'packages: . example/' > cabal.project"
+ - "test $GLASGOW_HASKELL -lt 800 || cabal new-build -w ${HC} --enable-tests all"
+ - "test $GLASGOW_HASKELL -lt 800 || $(find dist-newstyle -type f -name doctests)"
 
 # EOF
 

@@ -31,8 +31,10 @@ test-suite doctests
     doctest >= 0.11.3 && <0.12,
     QuickCheck ==2.10.*,
     template-haskell
-  autogen-modules:     Build_doctests
-  other-modules:       Build_doctests
   ghc-options:         -Wall -threaded
   hs-source-dirs:      tests
   default-language:    Haskell2010
+  -- we care about these with new GHC only
+  if impl(ghc >= 8.2)
+    autogen-modules:     Build_doctests
+    other-modules:       Build_doctests
