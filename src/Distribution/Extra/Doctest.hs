@@ -37,6 +37,7 @@ module Distribution.Extra.Doctest (
     addDoctestsUserHook,
     doctestsUserHooks,
     generateBuildModule,
+    amendBuildModule,
     ) where
 
 -- Hacky way to suppress few deprecation warnings.
@@ -51,19 +52,17 @@ import Data.List
 import Data.String
        (fromString)
 import Distribution.Package
-       (InstalledPackageId)
-import Distribution.Package
-       (Package (..), PackageId, packageVersion)
+       (InstalledPackageId, Package (..), PackageId, packageVersion)
 import Distribution.PackageDescription
-       (BuildInfo (..), Library (..), PackageDescription (), TestSuite (..))
+       (BuildInfo (..), GenericPackageDescription (..), Library (..),
+       PackageDescription, TestSuite (..))
 import Distribution.Simple
-       (UserHooks (..), autoconfUserHooks, defaultMainWithHooks, simpleUserHooks)
-import Distribution.Simple.BuildPaths
-       (autogenModulesDir)
+       (UserHooks (..), autoconfUserHooks, defaultMainWithHooks,
+       simpleUserHooks)
 import Distribution.Simple.Compiler
        (PackageDB (..), showCompilerId)
 import Distribution.Simple.LocalBuildInfo
-       (ComponentLocalBuildInfo (componentPackageDeps), LocalBuildInfo (),
+       (ComponentLocalBuildInfo (componentPackageDeps), LocalBuildInfo,
        compiler, withLibLBI, withPackageDB, withTestLBI)
 import Distribution.Simple.Setup
        (BuildFlags (buildDistPref, buildVerbosity), fromFlag)
@@ -77,10 +76,26 @@ import System.FilePath
 #if MIN_VERSION_Cabal(1,25,0)
 import Distribution.Simple.BuildPaths
        (autogenComponentModulesDir)
+#else
+import Distribution.Simple.BuildPaths
+       (autogenModulesDir)
 #endif
 #if MIN_VERSION_Cabal(2,0,0)
 import Distribution.Types.MungedPackageId
        (MungedPackageId)
+#endif
+
+#if MIN_VERSION_Cabal(2,0,0)
+import Data.List
+       (find, isSuffixOf)
+import Distribution.PackageDescription
+       (CondTree (..))
+import Distribution.PackageDescription.Parse
+       (readGenericPackageDescription)
+import Distribution.Verbosity
+       (silent)
+import System.Directory
+       (listDirectory)
 #endif
 
 #if MIN_VERSION_directory(1,2,2)
@@ -137,7 +152,52 @@ addDoctestsUserHook testsuiteName uh = uh
     { buildHook = \pkg lbi hooks flags -> do
        generateBuildModule testsuiteName flags pkg lbi
        buildHook uh pkg lbi hooks flags
+#if MIN_VERSION_Cabal(2,0,0)
+    , readDesc = do
+        paths <- listDirectory "."
+        case find (isSuffixOf ".cabal") paths of
+            Nothing -> return Nothing
+            Just fp -> do
+                gpd <- readGenericPackageDescription silent fp
+                let gpd' = amendBuildModule testsuiteName gpd
+                return (Just gpd')
+#endif
     }
+
+-- | Add @Build_doctests@ module to other-modules in the doctest test-suite.
+--
+-- TBD
+--
+-- @since 1.0.3
+amendBuildModule
+    :: String -- ^ doctests test-suite name
+    -> GenericPackageDescription
+    -> GenericPackageDescription
+#if MIN_VERSION_Cabal(2,0,0)
+amendBuildModule testSuiteName gpd = gpd
+    { condTestSuites = map f (condTestSuites gpd)
+    }
+  where
+    f (name, condTree)
+        | name == fromString testSuiteName = (name, condTree')
+        | otherwise                        = (name, condTree)
+      where
+        -- I miss 'lens'
+        testSuite = condTreeData condTree
+        bi = testBuildInfo testSuite
+        om = otherModules bi
+        am = autogenModules bi
+
+        -- append
+        om' = fromString "Build_doctests" : om
+        am' = fromString "Build_doctests" : am
+
+        bi' = bi { otherModules = om', autogenModules = am' }
+        testSuite' = testSuite { testBuildInfo = bi' }
+        condTree' = condTree { condTreeData = testSuite' }
+#else
+amendBuildModule _ gpd = gpd
+#endif
 
 -- | Generate a build module for the test suite.
 --

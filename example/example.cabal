@@ -14,7 +14,7 @@ cabal-version:       >=1.24
 
 custom-setup
   setup-depends:
-    base, Cabal, cabal-doctest >=1.0.2 && <1.1
+    base, Cabal, cabal-doctest >=1.0.3 && <1.1
 
 library
   exposed-modules:     Example
