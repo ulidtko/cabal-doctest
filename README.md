@@ -82,17 +82,19 @@ test-suite doctests:
 Notes
 -----
 
-* `Cabal-2.0` can be finicky about whether it builds the library component or
-  the `doctests` test suite component first. However, in order for
+* Recent versions of `Cabal` (for instance, 2.0) can choose to build a
+  package's `doctest` test suite _before_ the library. However, in order for
   `cabal-doctest` to work correctly, the library _must_ be built first, as
   `doctest` relies on the presence of generated files that are only created
   when the library is built. See
   [#19](https://github.com/phadej/cabal-doctest/issues/19).
 
-  To avoid headaches, it is recommended that you depend on the library itself
-  in the `doctests` test suite. See
+  A hacky workaround for this problem is to depend on the library itself in a
+  `doctests` test suite. See
   [the example's .cabal file](https://github.com/phadej/cabal-doctest/blob/master/example/example.cabal)
-  for a demonstration.
+  for a demonstration. (This assumes that the test suite has the ability to
+  read build artifacts from the library, a separate build component. In
+  practice, this assumption holds, which is why this library works at all.)
 
 * `custom-setup` section is supported starting from `cabal-install-1.24`.
   For older `cabal-install's` you have to install custom setup dependencies
