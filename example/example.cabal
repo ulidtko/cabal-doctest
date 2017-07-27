@@ -28,7 +28,8 @@ test-suite doctests
   main-is:             doctests.hs
   build-depends:
     base,
-    doctest >= 0.11.3 && <0.12,
+    doctest >= 0.11.3 && <0.13,
+    example,
     QuickCheck ==2.10.*,
     template-haskell
   ghc-options:         -Wall -threaded
