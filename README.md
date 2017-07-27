@@ -82,6 +82,18 @@ test-suite doctests:
 Notes
 -----
 
+* `Cabal-2.0` can be finicky about whether it builds the library component or
+  the `doctests` test suite component first. However, in order for
+  `cabal-doctest` to work correctly, the library _must_ be built first, as
+  `doctest` relies on the presence of generated files that are only created
+  when the library is built. See
+  [#19](https://github.com/phadej/cabal-doctest/issues/19).
+
+  To avoid headaches, it is recommended that you depend on the library itself
+  in the `doctests` test suite. See
+  [the example's .cabal file](https://github.com/phadej/cabal-doctest/blob/master/example/example.cabal)
+  for a demonstration.
+
 * `custom-setup` section is supported starting from `cabal-install-1.24`.
   For older `cabal-install's` you have to install custom setup dependencies
   manually.
@@ -93,11 +105,6 @@ Notes
 * There is [an issue in the Cabal issue tracker](https://github.com/haskell/cabal/issues/2327)
   about adding `cabal doctest` command. After that command is implemented,
   this library will be deprecated.
-
-* If your library contains `cbits`, you might need to depend on the library
-  itself in `doctests` test-suite. We aren't sure whether this a bug or not.
-  See [#5 issue](https://github.com/phadej/cabal-doctest/issues/5) for longer
-  explanation.
 
 * You can use `x-doctest-options` field in `test-suite doctests` to
   pass additional flags to the `doctest`.
