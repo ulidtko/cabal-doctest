@@ -227,6 +227,8 @@ generateBuildModule testSuiteName flags pkg lbi = do
       rewriteFile (testAutogenDir </> "Build_doctests.hs") $ unlines
         [ "module Build_doctests where"
         , ""
+        , "import Prelude"
+        , ""
         -- -package-id etc. flags
         , "pkgs :: [String]"
         , "pkgs = " ++ (show $ formatDeps $ testDeps libcfg suitecfg)
