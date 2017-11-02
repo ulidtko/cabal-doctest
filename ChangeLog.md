@@ -1,3 +1,7 @@
+# next -- ????.??.??
+
+* Add an explicit `Prelude` import to `Build_doctests`
+
 # 1.0.2 -- 2017-05-16
 
 * Add `defaultMainAutoconfWithDoctests` and `addDoctestsUserHook`.
