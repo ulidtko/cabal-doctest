@@ -1,4 +1,4 @@
-# next -- ????.??.??
+# 1.0.3 -- 2017-11-02
 
 * Add an explicit `Prelude` import to `Build_doctests`
 
