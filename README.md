@@ -5,11 +5,13 @@ cabal-doctest
 
 A `Setup.hs` helper for running `doctests`.
 
-Example Usage
--------------
+Simple example
+--------------
 
-See [https://github.com/phadej/cabal-doctest/tree/master/example] for an
-example package. (Note that the example requires `Cabal-1.24` or later, but
+For most use cases—a `.cabal` file with a single library containing
+doctests—adapting the simple example located
+[here](https://github.com/phadej/cabal-doctest/tree/master/simple-example)
+will be sufficient. (Note that this example requires `Cabal-1.24` or later, but
 you can relax this bound safely, although running doctests won't be supported
 on versions of `Cabal` older than 1.24.)
 
@@ -57,6 +59,52 @@ main = do
     args = flags ++ pkgs ++ module_sources
 ```
 
+Example with multiple .cabal components
+---------------------------------------
+
+`cabal-doctest` also supports more exotic use cases where a `.cabal` file
+contains more components with doctests than just the main library, including:
+
+* Doctests in executables
+* Doctests in Internal libraries (if using `Cabal-2.0` or later)
+
+Unlike the simple example shown above, these examples involve _named_
+components. You don't need to change the `Setup.hs` script to support
+this use case. However, in this scenario `Build_doctests` will generate extra
+copies of the `flags`, `pkgs`, and `module_sources` values for each additional
+named component. (For example, if you have an executable named `exe`, then
+separate values named `flags_exe`, `pkgs_exe`, and `module_sources_exe` will
+be generated in `Build_doctests`.)
+
+An example testsuite driver for this use case might look like this:
+
+```haskell
+module Main where
+
+import Build_doctests
+       (flags,     pkgs,     module_sources,
+        flags_exe, pkgs_exe, module_sources_exe)
+import Data.Foldable (traverse_)
+import Test.DocTest
+
+main :: IO ()
+main = do
+    -- doctests for library
+    traverse_ putStrLn libArgs
+    doctest libArgs
+
+    -- doctests for executable
+    traverse_ putStrLn exeArgs
+    doctest exeArgs
+  where
+    libArgs = flags     ++ pkgs     ++ module_sources
+    exeArgs = flags_exe ++ pkgs_exe ++ module_sources_exe
+```
+
+See
+[this example](https://github.com/phadej/cabal-doctest/tree/master/multiple-components-example)
+for more details.
+
 Additional configuration
 ------------------------
 
@@ -91,7 +139,7 @@ Notes
 
   A hacky workaround for this problem is to depend on the library itself in a
   `doctests` test suite. See
-  [the example's .cabal file](https://github.com/phadej/cabal-doctest/blob/master/example/example.cabal)
+  [the simple example's .cabal file](https://github.com/phadej/cabal-doctest/blob/master/simple-example/simple-example.cabal)
   for a demonstration. (This assumes that the test suite has the ability to
   read build artifacts from the library, a separate build component. In
   practice, this assumption holds, which is why this library works at all.)

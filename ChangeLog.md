@@ -1,3 +1,8 @@
+# next -- ????-??-??
+
+* Add support for doctests in executables and (with `Cabal-2.0` or later)
+  internal libraries. Refer to the `README` for more details.
+
 # 1.0.3 -- 2017-11-02
 
 * Add an explicit `Prelude` import to `Build_doctests`
