@@ -52,6 +52,8 @@ import Data.Maybe
        (maybeToList)
 import Data.String
        (fromString)
+import qualified Data.Traversable as T
+       (traverse)
 import qualified Distribution.ModuleName as ModuleName
        (fromString)
 import Distribution.ModuleName
@@ -252,7 +254,7 @@ generateBuildModule testSuiteName flags pkg lbi = do
            -- even though the main-is module is named Main, its filepath might
            -- actually be Something.hs. To account for this possibility, we simply
            -- pass the full path to the main-is module instead.
-           mainIsPath <- mapM (findFile iArgsNoPrefix) (compMainIs comp)
+           mainIsPath <- T.traverse (findFile iArgsNoPrefix) (compMainIs comp)
 
            let all_sources = show (map display module_sources
                                    ++ additionalModules
