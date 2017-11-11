@@ -1,7 +1,7 @@
 name:                multiple-components-example
 version:             1
-synopsis:            Simple example of cabal-doctest demonstrating a library
-                     with doctests
+synopsis:            cabal-doctest example demonstrating a library and
+                     executable component, both with doctests
 description:         A package skeleton, to demostrate the use of cabal-doctest
 homepage:            https://github.com/phadej/cabal-doctest
 license:             BSD3
@@ -24,8 +24,9 @@ library
   hs-source-dirs:      src
   default-language:    Haskell2010
 
-executable exe
-  main-is:             Main.hs
+executable my-exe
+  main-is:             Something.hs
+  other-modules:       OtherModule
   build-depends:
     base,
     multiple-components-example

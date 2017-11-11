@@ -1,6 +1,6 @@
 module Main where
 
-import Example
+import OtherModule
 
 -- | An example 'CBool'.
 --
