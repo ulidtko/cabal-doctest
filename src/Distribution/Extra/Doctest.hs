@@ -364,8 +364,11 @@ generateBuildModule testSuiteName flags pkg lbi = do
     executableName = exeName
 #endif
 
-    -- Taken from Cabal. Needed to fix component names with hyphens in them,
-    -- as hyphens aren't allowed in Haskell identifier names.
+    -- Taken from Cabal:
+    -- https://github.com/haskell/cabal/blob/20de0bfea72145ba1c37e3f500cee5258cc18e51/Cabal/Distribution/Simple/Build/Macros.hs#L156-L158
+    --
+    -- Needed to fix component names with hyphens in them, as hyphens aren't
+    -- allowed in Haskell identifier names.
     fixchar :: Char -> Char
     fixchar '-' = '_'
     fixchar c   = c
