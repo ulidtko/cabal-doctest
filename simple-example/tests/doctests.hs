@@ -2,7 +2,7 @@ module Main where
 
 import Build_doctests (flags, pkgs, module_sources)
 import Data.Foldable (traverse_)
-import Test.DocTest
+import Test.DocTest (doctest)
 
 main :: IO ()
 main = do

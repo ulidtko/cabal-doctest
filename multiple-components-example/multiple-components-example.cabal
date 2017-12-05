@@ -35,6 +35,7 @@ executable my-exe
   default-language:    Haskell2010
 
 test-suite doctests
+  x-doctest-components: lib exe:my-exe
   type:                exitcode-stdio-1.0
   main-is:             doctests.hs
   build-depends:

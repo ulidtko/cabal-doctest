@@ -74,12 +74,36 @@ this use case. However, in this scenario `Build_doctests` will generate extra
 copies of the `flags`, `pkgs`, and `module_sources` values for each additional
 named component.
 
-For example, if you have an executable named `exe`, then
-separate values named `flags_exe`, `pkgs_exe`, and `module_sources_exe` will
+Simplest approach is to use `x-doctest-components` field, for example
+```
+x-doctest-components: lib lib:internal exe:example
+```
+
+In that case, the testdrive is general:
+
+```haskell
+module Main where
+
+import Build_doctests (Component (..), components)
+import Data.Foldable (for_)
+import Test.DocTest (doctest)
+
+main :: IO ()
+main = for_ components $ \(Component name flags pkgs sources) -> do
+    print name
+    putStrLn "----------------------------------------"
+    let args = flags ++ pkgs ++ sources
+    for_ args putStrLn
+    doctest args
+```
+
+There's also a more explicit approach: if you have an executable named `foo`,
+then separate values named `flags_exe_foo`, `pkgs_exe_foo`, and `module_sources_exe_foo` will
 be generated in `Build_doctests`. If the name has hyphens in it
 (e.g., `my-exe`), then `cabal-doctest` will convert those hyphens to
 underscores (e.g., you'd get `flags_my_exe`, `pkgs_my_exe`, and
 `module_sources_my_exe`).
+Internal library `bar` values will have a `_lib_bar` suffix.
 
 An example testsuite driver for this use case might look like this:
 
@@ -87,8 +111,8 @@ An example testsuite driver for this use case might look like this:
 module Main where
 
 import Build_doctests
-       (flags,        pkgs,        module_sources,
-        flags_my_exe, pkgs_my_exe, module_sources_my_exe)
+       (flags,            pkgs,            module_sources,
+        flags_exe_my_exe, pkgs_exe_my_exe, module_sources_exe_my_exe)
 import Data.Foldable (traverse_)
 import Test.DocTest
 
@@ -102,8 +126,8 @@ main = do
     traverse_ putStrLn exeArgs
     doctest exeArgs
   where
-    libArgs = flags        ++ pkgs        ++ module_sources
-    exeArgs = flags_my_exe ++ pkgs_my_exe ++ module_sources_my_exe
+    libArgs = flags            ++ pkgs            ++ module_sources
+    exeArgs = flags_exe_my_exe ++ pkgs_exe_my_exe ++ module_sources_exe_my_exe
 ```
 
 See

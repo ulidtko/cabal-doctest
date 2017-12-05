@@ -49,9 +49,11 @@ import Control.Monad
 import Data.List
        (nub)
 import Data.Maybe
-       (maybeToList)
+       (maybeToList, mapMaybe)
 import Data.String
        (fromString)
+import qualified Data.Foldable as F
+       (for_)
 import qualified Data.Traversable as T
        (traverse)
 import qualified Distribution.ModuleName as ModuleName
@@ -82,6 +84,8 @@ import Distribution.Text
        (display, simpleParse)
 import System.FilePath
        ((</>), (<.>), dropExtension)
+
+import Data.IORef (newIORef, modifyIORef, readIORef)
 
 #if MIN_VERSION_Cabal(1,25,0)
 import Distribution.Simple.BuildPaths
@@ -150,6 +154,25 @@ addDoctestsUserHook testsuiteName uh = uh
        buildHook uh pkg lbi hooks flags
     }
 
+data Name = NameLib (Maybe String) | NameExe String deriving (Eq, Show)
+
+nameToString :: Name -> String
+nameToString n = case n of
+  NameLib x -> maybe "" (("_lib_" ++) . map fixchar) x
+  NameExe x -> "_exe_" ++ map fixchar x
+  where
+    -- Taken from Cabal:
+    -- https://github.com/haskell/cabal/blob/20de0bfea72145ba1c37e3f500cee5258cc18e51/Cabal/Distribution/Simple/Build/Macros.hs#L156-L158
+    --
+    -- Needed to fix component names with hyphens in them, as hyphens aren't
+    -- allowed in Haskell identifier names.
+    fixchar :: Char -> Char
+    fixchar '-' = '_'
+    fixchar c   = c
+
+data Component = Component Name [String] [String] [String]
+  deriving Show
+
 -- | Generate a build module for the test suite.
 --
 -- @
@@ -194,11 +217,35 @@ generateBuildModule testSuiteName flags pkg lbi = do
       , ""
       , "import Prelude"
       , ""
+      , "data Name = NameLib (Maybe String) | NameExe String deriving (Eq, Show)"
+      , "data Component = Component Name [String] [String] [String] deriving (Eq, Show)"
+      , ""
       ]
 
-    -- Next, for each component (library or executable), we append to Build_doctests
+    -- we cannot traverse, only traverse_
+    -- so we use IORef to collect components
+    componentsRef <- newIORef []
+
+    let testBI = testBuildInfo suite
+
+    -- TODO: `words` is not proper parser (no support for quotes)
+    let additionalFlags = maybe [] words
+          $ lookup "x-doctest-options"
+          $ customFieldsBI testBI
+
+    let additionalModules = maybe [] words
+          $ lookup "x-doctest-modules"
+          $ customFieldsBI testBI
+
+    let additionalDirs' = maybe [] words
+          $ lookup "x-doctest-source-dirs"
+          $ customFieldsBI testBI
+
+    additionalDirs <- mapM (fmap ("-i" ++) . makeAbsolute) additionalDirs'
+
+    -- Next, for each component (library or executable), we get to Build_doctests
     -- the sets of flags needed to run doctest on that component.
-    let appendBuildDoctests withCompLBI mbCompName compExposedModules compMainIs compBuildInfo =
+    let getBuildDoctests withCompLBI mbCompName compExposedModules compMainIs compBuildInfo =
          withCompLBI pkg lbi $ \comp compCfg -> do
            let compBI = compBuildInfo comp
 
@@ -233,22 +280,6 @@ generateBuildModule testSuiteName flags pkg lbi = do
                    [ "-include", compAutogenDir ++ "/cabal_macros.h" ]
                    ++ cppOptions compBI
 
-           let testBI = testBuildInfo suite
-
-           -- TODO: `words` is not proper parser (no support for quotes)
-           let additionalFlags = maybe [] words
-                 $ lookup "x-doctest-options"
-                 $ customFieldsBI testBI
-
-           let additionalModules = maybe [] words
-                 $ lookup "x-doctest-modules"
-                 $ customFieldsBI testBI
-
-           let additionalDirs' = maybe [] words
-                 $ lookup "x-doctest-source-dirs"
-                 $ customFieldsBI testBI
-           additionalDirs <- mapM (fmap ("-i" ++) . makeAbsolute) additionalDirs'
-
            -- Unlike other modules, the main-is module of an executable is not
            -- guaranteed to share a module name with its filepath name. That is,
            -- even though the main-is module is named Main, its filepath might
@@ -256,41 +287,73 @@ generateBuildModule testSuiteName flags pkg lbi = do
            -- pass the full path to the main-is module instead.
            mainIsPath <- T.traverse (findFile iArgsNoPrefix) (compMainIs comp)
 
-           let all_sources = show (map display module_sources
-                                   ++ additionalModules
-                                   ++ maybeToList mainIsPath)
+           let all_sources = map display module_sources
+                             ++ additionalModules
+                             ++ maybeToList mainIsPath
 
-           let compSuffix          = maybe "" (\c -> "_" ++ map fixchar c) (mbCompName comp)
-               pkgs_comp           = "pkgs"           ++ compSuffix
-               flags_comp          = "flags"          ++ compSuffix
-               module_sources_comp = "module_sources" ++ compSuffix
+           let component = Component
+                (mbCompName comp)
+                (formatDeps $ testDeps compCfg suitecfg)
+                (concat
+                  [ iArgs
+                  , additionalDirs
+                  , includeArgs
+                  , dbFlags
+                  , cppFlags
+                  , extensionArgs
+                  , additionalFlags
+                  ])
+                all_sources
 
-           -- write autogen'd file
-           appendFile buildDoctestsFile $ unlines
-             [ -- -package-id etc. flags
-               pkgs_comp ++ " :: [String]"
-             , pkgs_comp ++ " = " ++ (show $ formatDeps $ testDeps compCfg suitecfg)
-             , ""
-             , flags_comp ++ " :: [String]"
-             , flags_comp ++ " = " ++ show (concat
-               [ iArgs
-               , additionalDirs
-               , includeArgs
-               , dbFlags
-               , cppFlags
-               , extensionArgs
-               , additionalFlags
-               ])
-             , ""
-             , module_sources_comp ++ " :: [String]"
-             , module_sources_comp ++ " = " ++ all_sources
-             , ""
-             ]
+           -- modify IORef, append component
+           modifyIORef componentsRef (\cs -> cs ++ [component])
 
     -- For now, we only check for doctests in libraries and executables.
-    appendBuildDoctests withLibLBI mbLibraryName           exposedModules (const Nothing)     libBuildInfo
-    appendBuildDoctests withExeLBI (Just . executableName) (const [])     (Just . modulePath) buildInfo
+    getBuildDoctests withLibLBI mbLibraryName           exposedModules (const Nothing)     libBuildInfo
+    getBuildDoctests withExeLBI (NameExe . executableName) (const [])     (Just . modulePath) buildInfo
+
+    components <- readIORef componentsRef
+    F.for_ components $ \(Component name pkgs flags sources) -> do
+       let compSuffix          = nameToString name
+           pkgs_comp           = "pkgs"           ++ compSuffix
+           flags_comp          = "flags"          ++ compSuffix
+           module_sources_comp = "module_sources" ++ compSuffix
+
+       -- write autogen'd file
+       appendFile buildDoctestsFile $ unlines
+         [ -- -package-id etc. flags
+           pkgs_comp ++ " :: [String]"
+         , pkgs_comp ++ " = " ++ show pkgs
+         , ""
+         , flags_comp ++ " :: [String]"
+         , flags_comp ++ " = " ++ show flags
+         , ""
+         , module_sources_comp ++ " :: [String]"
+         , module_sources_comp ++ " = " ++ show sources
+         , ""
+         ]
+
+    -- write enabled components, i.e. x-doctest-components
+    -- if none enabled, pick library
+    let enabledComponents = maybe [NameLib Nothing] (mapMaybe parseComponentName . words)
+           $ lookup "x-doctest-components"
+           $ customFieldsBI testBI
+
+    let components' =
+         filter (\(Component n _ _ _) -> n `elem` enabledComponents) components
+    appendFile buildDoctestsFile $ unlines
+      [ "-- " ++ show enabledComponents
+      , "components :: [Component]"
+      , "components = " ++ show components'
+      ]
+
   where
+    parseComponentName :: String -> Maybe Name
+    parseComponentName "lib"                       = Just (NameLib Nothing)
+    parseComponentName ('l' : 'i' : 'b' : ':' : x) = Just (NameLib (Just x))
+    parseComponentName ('e' : 'x' : 'e' : ':' : x) = Just (NameExe x)
+    parseComponentName _ = Nothing
+
     -- we do this check in Setup, as then doctests don't need to depend on Cabal
     isOldCompiler = maybe False id $ do
       a <- simpleParse $ showCompilerId $ compiler lbi
@@ -347,14 +410,14 @@ generateBuildModule testSuiteName flags pkg lbi = do
        isSpecific (SpecificPackageDB _) = True
        isSpecific _                     = False
 
-    mbLibraryName :: Library -> Maybe String
+    mbLibraryName :: Library -> Name
 #if MIN_VERSION_Cabal(2,0,0)
     -- Cabal-2.0 introduced internal libraries, which are named.
-    mbLibraryName = fmap unUnqualComponentName . libName
+    mbLibraryName = NameLib . fmap unUnqualComponentName . libName
 #else
     -- Before that, there was only ever at most one library per
     -- .cabal file, which has no name.
-    mbLibraryName _ = Nothing
+    mbLibraryName _ = NameLib Nothing
 #endif
 
     executableName :: Executable -> String
@@ -363,15 +426,6 @@ generateBuildModule testSuiteName flags pkg lbi = do
 #else
     executableName = exeName
 #endif
-
-    -- Taken from Cabal:
-    -- https://github.com/haskell/cabal/blob/20de0bfea72145ba1c37e3f500cee5258cc18e51/Cabal/Distribution/Simple/Build/Macros.hs#L156-L158
-    --
-    -- Needed to fix component names with hyphens in them, as hyphens aren't
-    -- allowed in Haskell identifier names.
-    fixchar :: Char -> Char
-    fixchar '-' = '_'
-    fixchar c   = c
 
 -- | In compat settings it's better to omit the type-signature
 testDeps :: ComponentLocalBuildInfo -> ComponentLocalBuildInfo
