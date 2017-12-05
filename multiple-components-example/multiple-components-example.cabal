@@ -1,6 +1,7 @@
-name:                example
+name:                multiple-components-example
 version:             1
-synopsis:            Example of cabal-doctest
+synopsis:            cabal-doctest example demonstrating a library and
+                     executable component, both with doctests
 description:         A package skeleton, to demostrate the use of cabal-doctest
 homepage:            https://github.com/phadej/cabal-doctest
 license:             BSD3
@@ -23,13 +24,24 @@ library
   hs-source-dirs:      src
   default-language:    Haskell2010
 
+executable my-exe
+  main-is:             Something.hs
+  other-modules:       OtherModule
+  build-depends:
+    base,
+    multiple-components-example
+  ghc-options:         -Wall -threaded
+  hs-source-dirs:      exe
+  default-language:    Haskell2010
+
 test-suite doctests
+  x-doctest-components: lib exe:my-exe
   type:                exitcode-stdio-1.0
   main-is:             doctests.hs
   build-depends:
     base,
-    doctest >= 0.11.3 && <0.13,
-    example,
+    doctest >= 0.11.3 && <0.14,
+    multiple-components-example,
     QuickCheck ==2.10.*,
     template-haskell
   ghc-options:         -Wall -threaded

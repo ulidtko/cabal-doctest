@@ -107,10 +107,15 @@ script:
    if dist-newstyle/build/**/$SRC_BASENAME/**/build/$T/$T; then echo "= $T OK =";
    else echo "= $T FAILED ="; RC=false; fi; done; $RC
 
- # try to build example as well
- - test ! $HC = "ghc-8.0.2" || cp -r $ROOTDIR/example example
- - "test ! $HC = 'ghc-8.0.2' || echo 'packages: . example/' > cabal.project"
- - test ! $HC = "ghc-8.0.2" || cabal new-build -w ${HC} --enable-tests example:example example:doctests
+ # try to build examples as well
+ - test ! $HC = "ghc-8.0.2" || cp -r $ROOTDIR/simple-example simple-example
+ - "test ! $HC = 'ghc-8.0.2' || echo 'packages: . simple-example/' > cabal.project"
+ - test ! $HC = "ghc-8.0.2" || cabal new-build -w ${HC} --enable-tests simple-example:simple-example simple-example:doctests
+ - test ! $HC = "ghc-8.0.2" || $(find dist-newstyle -type f -name doctests)
+
+ - test ! $HC = "ghc-8.0.2" || cp -r $ROOTDIR/multiple-components-example multiple-components-example
+ - "test ! $HC = 'ghc-8.0.2' || echo 'packages: . multiple-components-example/' > cabal.project"
+ - test ! $HC = "ghc-8.0.2" || cabal new-build -w ${HC} --enable-tests multiple-components-example:multiple-components-example multiple-components-example:doctests
  - test ! $HC = "ghc-8.0.2" || $(find dist-newstyle -type f -name doctests)
 
 # EOF
