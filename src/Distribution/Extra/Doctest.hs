@@ -65,7 +65,7 @@ import Distribution.Package
 import Distribution.Package
        (Package (..), PackageId, packageVersion)
 import Distribution.PackageDescription
-       (BuildInfo (..), Executable (..), Library (..),
+       (BuildInfo (..), Executable (..), Library (..), GenericPackageDescription,
        PackageDescription (), TestSuite (..))
 import Distribution.Simple
        (UserHooks (..), autoconfUserHooks, defaultMainWithHooks, simpleUserHooks)
@@ -96,6 +96,12 @@ import Distribution.Types.MungedPackageId
        (MungedPackageId)
 import Distribution.Types.UnqualComponentName
        (unUnqualComponentName)
+
+-- For amendGPD
+import Distribution.Types.GenericPackageDescription
+       (GenericPackageDescription (condTestSuites))
+import Distribution.PackageDescription
+       (CondTree (..))
 #endif
 
 #if MIN_VERSION_directory(1,2,2)
@@ -150,8 +156,13 @@ doctestsUserHooks testsuiteName =
 addDoctestsUserHook :: String -> UserHooks -> UserHooks
 addDoctestsUserHook testsuiteName uh = uh
     { buildHook = \pkg lbi hooks flags -> do
-       generateBuildModule testsuiteName flags pkg lbi
-       buildHook uh pkg lbi hooks flags
+        generateBuildModule testsuiteName flags pkg lbi
+        buildHook uh pkg lbi hooks flags
+    -- We use confHook to add "Build_Doctests" to otherModules and autogenModules.
+    --
+    -- We cannot use HookedBuildInfo as it let's alter only the library and executables.
+    , confHook = \(gpd, hbi) flags ->
+        confHook uh (amendGPD testsuiteName gpd, hbi) flags
     }
 
 data Name = NameLib (Maybe String) | NameExe String deriving (Eq, Show)
@@ -435,3 +446,41 @@ testDeps :: ComponentLocalBuildInfo -> ComponentLocalBuildInfo
          -> [(InstalledPackageId, PackageId)]
 #endif
 testDeps xs ys = nub $ componentPackageDeps xs ++ componentPackageDeps ys
+
+amendGPD
+    :: String -- ^ doctests test-suite name
+    -> GenericPackageDescription
+    -> GenericPackageDescription
+#if !(MIN_VERSION_Cabal(2,0,0))
+amendGPD _ = id
+#else
+amendGPD testSuiteName gpd = gpd
+    { condTestSuites = map f (condTestSuites gpd)
+    }
+  where
+    f (name, condTree)
+        | name == fromString testSuiteName = (name, condTree')
+        | otherwise                        = (name, condTree)
+      where
+        -- I miss 'lens'
+        testSuite = condTreeData condTree
+        bi = testBuildInfo testSuite
+        om = otherModules bi
+        am = autogenModules bi
+
+        -- Cons the module to both other-modules and autogen-modules.
+        -- At the moment, cabal-spec-2.0 and cabal-spec-2.2 don't have
+        -- "all autogen-modules are other-modules if they aren't exposed-modules"
+        -- rule. Hopefully cabal-spec-3.0 will have.
+        --
+        -- Note: we `nub`, because it's unclear if that's ok to have duplicate
+        -- modules in the lists.
+        om' = nub $ mn : om
+        am' = nub $ mn : am
+
+        mn = fromString "Build_doctests"
+
+        bi' = bi { otherModules = om', autogenModules = am' }
+        testSuite' = testSuite { testBuildInfo = bi' }
+        condTree' = condTree { condTreeData = testSuite' }
+#endif

@@ -1,5 +1,5 @@
 name:                cabal-doctest
-version:             1.0.4
+version:             1.0.5
 synopsis:            A Setup.hs helper for doctests running
 description:
   Currently (beginning of 2017), there isn't @cabal doctest@
