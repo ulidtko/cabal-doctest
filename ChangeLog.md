@@ -1,3 +1,9 @@
+# 1.0.5 -- 2018-01-26
+
+* Add a hack so `Build_doctests` module is automatically added to
+  to `other-modules` and `autogen-modules` when compiled with Cabal-2.0.
+  Thanks to that, we don't get warnings because of `-Wmissing-home-modules`.
+
 # 1.0.4 -- 2017-12-05
 
 * Add support for doctests in executables and (with `Cabal-2.0` or later)
