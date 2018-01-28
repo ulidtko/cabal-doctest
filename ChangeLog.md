@@ -1,3 +1,8 @@
+# 1.0.6 -- 2018-01-28
+
+* Hook `haddock` build too. Fixes issue when `haddock` fails, as
+  `Build_doctests` isn't generated.
+
 # 1.0.5 -- 2018-01-26
 
 * Add a hack so `Build_doctests` module is automatically added to
