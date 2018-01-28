@@ -77,7 +77,7 @@ import Distribution.Simple.LocalBuildInfo
        (ComponentLocalBuildInfo (componentPackageDeps), LocalBuildInfo (),
        compiler, withExeLBI, withLibLBI, withPackageDB, withTestLBI)
 import Distribution.Simple.Setup
-       (BuildFlags (buildDistPref, buildVerbosity), fromFlag)
+       (BuildFlags (buildDistPref, buildVerbosity), HaddockFlags (haddockDistPref, haddockVerbosity), fromFlag, emptyBuildFlags)
 import Distribution.Simple.Utils
        (createDirectoryIfMissingVerbose, findFile, rewriteFile)
 import Distribution.Text
@@ -163,6 +163,16 @@ addDoctestsUserHook testsuiteName uh = uh
     -- We cannot use HookedBuildInfo as it let's alter only the library and executables.
     , confHook = \(gpd, hbi) flags ->
         confHook uh (amendGPD testsuiteName gpd, hbi) flags
+    , haddockHook = \pkg lbi hooks flags -> do
+        generateBuildModule testsuiteName (haddockToBuildFlags flags) pkg lbi
+        haddockHook uh pkg lbi hooks flags
+    }
+
+-- | Convert only flags used by 'generateBuildModule'.
+haddockToBuildFlags :: HaddockFlags -> BuildFlags
+haddockToBuildFlags f = emptyBuildFlags
+    { buildVerbosity = haddockVerbosity f
+    , buildDistPref  = haddockDistPref f
     }
 
 data Name = NameLib (Maybe String) | NameExe String deriving (Eq, Show)
