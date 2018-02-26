@@ -1,5 +1,5 @@
 name:                cabal-doctest
-version:             1.0.6
+version:             1.0.7
 synopsis:            A Setup.hs helper for doctests running
 description:
   Currently (beginning of 2017), there isn't @cabal doctest@
@@ -27,7 +27,8 @@ tested-with:
   GHC==7.8.4,
   GHC==7.10.3,
   GHC==8.0.2,
-  GHC==8.2.2
+  GHC==8.2.2,
+  GHC==8.4.1
 
 source-repository head
   type:     git
@@ -38,8 +39,8 @@ library
   other-modules:
   other-extensions:
   build-depends:
-    base >=4.3 && <4.11,
-    Cabal >= 1.10 && <2.1,
+    base >=4.3 && <4.12,
+    Cabal >= 1.10 && <2.2,
     filepath,
     directory
   hs-source-dirs:      src
