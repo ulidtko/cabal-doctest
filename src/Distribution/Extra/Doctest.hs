@@ -234,7 +234,7 @@ generateBuildModule testSuiteName flags pkg lbi = do
     -- First, we create the autogen'd module Build_doctests.
     -- Initially populate Build_doctests with a simple preamble.
     writeFile buildDoctestsFile $ unlines
-      [ "module Build_doctests where"
+      [ "module Build_doctests (Name, Component, pkgs, flags, module_sources, components) where"
       , ""
       , "import Prelude"
       , ""
