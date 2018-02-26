@@ -234,9 +234,13 @@ generateBuildModule testSuiteName flags pkg lbi = do
     -- First, we create the autogen'd module Build_doctests.
     -- Initially populate Build_doctests with a simple preamble.
     writeFile buildDoctestsFile $ unlines
-      [ "module Build_doctests where"
+      [ "{-# LANGUAGE NoImplicitPrelude #-}"
+      , "module Build_doctests where"
       , ""
-      , "import Prelude"
+      , "import Data.Eq (Eq)"
+      , "import Data.Maybe (Maybe (Nothing))"
+      , "import Data.String (String)"
+      , "import Text.Show (Show)"
       , ""
       , "data Name = NameLib (Maybe String) | NameExe String deriving (Eq, Show)"
       , "data Component = Component Name [String] [String] [String] deriving (Eq, Show)"
