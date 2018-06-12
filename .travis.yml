@@ -50,6 +50,9 @@ matrix:
     - compiler: "ghc-8.2.2"
     # env: TEST=--disable-tests BENCH=--disable-benchmarks
       addons: {apt: {packages: [ghc-ppa-tools,cabal-install-2.0,ghc-8.2.2], sources: [hvr-ghc]}}
+    - compiler: "ghc-8.4.3"
+    # env: TEST=--disable-tests BENCH=--disable-benchmarks
+      addons: {apt: {packages: [ghc-ppa-tools,cabal-install-2.0,ghc-8.4.3], sources: [hvr-ghc]}}
     - compiler: "ghc-head"
     # env: TEST=--disable-tests BENCH=--disable-benchmarks
       addons: {apt: {packages: [ghc-ppa-tools,cabal-install-head,ghc-head], sources: [hvr-ghc]}}
@@ -108,15 +111,15 @@ script:
    else echo "= $T FAILED ="; RC=false; fi; done; $RC
 
  # try to build examples as well
- - test ! $HC = "ghc-8.0.2" || cp -r $ROOTDIR/simple-example simple-example
- - "test ! $HC = 'ghc-8.0.2' || echo 'packages: . simple-example/' > cabal.project"
- - test ! $HC = "ghc-8.0.2" || cabal new-build -w ${HC} --enable-tests simple-example:simple-example simple-example:doctests
- - test ! $HC = "ghc-8.0.2" || $(find dist-newstyle -type f -name doctests)
+ - test ! $HC = "ghc-8.4.3" || cp -r $ROOTDIR/simple-example simple-example
+ - "test ! $HC = 'ghc-8.4.3' || echo 'packages: . simple-example/' > cabal.project"
+ - test ! $HC = "ghc-8.4.3" || cabal new-build -w ${HC} --enable-tests simple-example:simple-example simple-example:doctests
+ - test ! $HC = "ghc-8.4.3" || $(find dist-newstyle -type f -name doctests)
 
- - test ! $HC = "ghc-8.0.2" || cp -r $ROOTDIR/multiple-components-example multiple-components-example
- - "test ! $HC = 'ghc-8.0.2' || echo 'packages: . multiple-components-example/' > cabal.project"
- - test ! $HC = "ghc-8.0.2" || cabal new-build -w ${HC} --enable-tests multiple-components-example:multiple-components-example multiple-components-example:doctests
- - test ! $HC = "ghc-8.0.2" || $(find dist-newstyle -type f -name doctests)
+ - test ! $HC = "ghc-8.4.3" || cp -r $ROOTDIR/multiple-components-example multiple-components-example
+ - "test ! $HC = 'ghc-8.4.3' || echo 'packages: . multiple-components-example/' > cabal.project"
+ - test ! $HC = "ghc-8.4.3" || cabal new-build -w ${HC} --enable-tests multiple-components-example:multiple-components-example multiple-components-example:doctests
+ - test ! $HC = "ghc-8.4.3" || $(find dist-newstyle -type f -name doctests)
 
 # EOF
 
