@@ -40,7 +40,7 @@ library
   other-modules:
   other-extensions:
   build-depends:
-    base >=4.3 && <4.12,
+    base >=4.3 && <4.13,
     Cabal >= 1.10 && <2.3,
     filepath,
     directory
