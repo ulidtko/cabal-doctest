@@ -15,12 +15,12 @@ cabal-version:       1.12
 
 custom-setup
   setup-depends:
-    base, Cabal, cabal-doctest >=1.0.2 && <1.1
+    base, Cabal, cabal-doctest >=1.0.6 && <1.1
 
 library
   exposed-modules:     Example
   default-extensions:  ScopedTypeVariables RankNTypes
-  build-depends:       base >=4.3 && <4.12
+  build-depends:       base >=4.3 && <4.13
   hs-source-dirs:      src
   default-language:    Haskell2010
 
@@ -29,8 +29,8 @@ test-suite doctests
   main-is:             doctests.hs
   build-depends:
     base,
-    doctest >= 0.15 && <0.16,
-    QuickCheck ==2.11.*,
+    doctest >= 0.15 && <0.17,
+    QuickCheck ==2.12.*,
     simple-example,
     template-haskell
 
