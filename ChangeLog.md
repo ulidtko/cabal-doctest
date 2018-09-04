@@ -1,3 +1,8 @@
+# next
+
+* Add an explicit exports list to the generated `Build_doctest` module.
+  This eliminates a warning from `-Wmissing-export-list` on GHC 8.4.
+
 # 1.0.6 -- 2018-01-28
 
 * Hook `haddock` build too. Fixes issue when `haddock` fails, as
