@@ -87,6 +87,10 @@ import System.FilePath
 
 import Data.IORef (newIORef, modifyIORef, readIORef)
 
+#if MIN_VERSION_Cabal(2,5,0)
+import Distribution.Types.LibraryName
+       (LibraryName(..))
+#endif
 #if MIN_VERSION_Cabal(1,25,0)
 import Distribution.Simple.BuildPaths
        (autogenComponentModulesDir)
@@ -432,7 +436,12 @@ generateBuildModule testSuiteName flags pkg lbi = do
        isSpecific _                     = False
 
     mbLibraryName :: Library -> Name
-#if MIN_VERSION_Cabal(2,0,0)
+#if MIN_VERSION_Cabal(2,5,0)
+    mbLibraryName l = NameLib $
+      case libName l of
+        LMainLibName  -> Nothing
+        LSubLibName n -> Just $ unUnqualComponentName n
+#elif MIN_VERSION_Cabal(2,0,0)
     -- Cabal-2.0 introduced internal libraries, which are named.
     mbLibraryName = NameLib . fmap unUnqualComponentName . libName
 #else
