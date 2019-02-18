@@ -42,7 +42,7 @@ library
   other-extensions:
   build-depends:
     base >=4.3 && <4.13,
-    Cabal >= 1.10 && <2.5,
+    Cabal >= 1.10 && <2.6,
     filepath,
     directory
   hs-source-dirs:      src
