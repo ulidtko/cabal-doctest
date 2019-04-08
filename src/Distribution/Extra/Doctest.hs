@@ -79,7 +79,7 @@ import Distribution.Simple.LocalBuildInfo
 import Distribution.Simple.Setup
        (BuildFlags (buildDistPref, buildVerbosity), HaddockFlags (haddockDistPref, haddockVerbosity), fromFlag, emptyBuildFlags)
 import Distribution.Simple.Utils
-       (createDirectoryIfMissingVerbose, findFile, rewriteFile)
+       (createDirectoryIfMissingVerbose, findFile, rewriteFile, info)
 import Distribution.Text
        (display, simpleParse)
 import System.FilePath
@@ -233,6 +233,7 @@ generateBuildModule testSuiteName flags pkg lbi = do
 
     -- First, we create the autogen'd module Build_doctests.
     -- Initially populate Build_doctests with a simple preamble.
+    info verbosity $ "cabal-doctest: writing Build_doctests to " ++ buildDoctestsFile
     writeFile buildDoctestsFile $ unlines
       [ "module Build_doctests where"
       , ""
