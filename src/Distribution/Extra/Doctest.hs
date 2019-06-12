@@ -56,10 +56,6 @@ import qualified Data.Foldable as F
        (for_)
 import qualified Data.Traversable as T
        (traverse)
-import qualified Distribution.ModuleName as ModuleName
-       (fromString)
-import Distribution.ModuleName
-       (ModuleName)
 import Distribution.Package
        (InstalledPackageId)
 import Distribution.Package
@@ -69,8 +65,6 @@ import Distribution.PackageDescription
        PackageDescription (), TestSuite (..))
 import Distribution.Simple
        (UserHooks (..), autoconfUserHooks, defaultMainWithHooks, simpleUserHooks)
-import Distribution.Simple.BuildPaths
-       (autogenModulesDir)
 import Distribution.Simple.Compiler
        (PackageDB (..), showCompilerId)
 import Distribution.Simple.LocalBuildInfo
@@ -79,17 +73,19 @@ import Distribution.Simple.LocalBuildInfo
 import Distribution.Simple.Setup
        (BuildFlags (buildDistPref, buildVerbosity), HaddockFlags (haddockDistPref, haddockVerbosity), fromFlag, emptyBuildFlags)
 import Distribution.Simple.Utils
-       (createDirectoryIfMissingVerbose, findFile, rewriteFile, info)
+       (createDirectoryIfMissingVerbose, findFile, info)
 import Distribution.Text
        (display, simpleParse)
 import System.FilePath
-       ((</>), (<.>), dropExtension)
+       ((</>))
 
 import Data.IORef (newIORef, modifyIORef, readIORef)
 
-#if MIN_VERSION_Cabal(1,25,0)
 import Distribution.Simple.BuildPaths
+#if MIN_VERSION_Cabal(1,25,0)
        (autogenComponentModulesDir)
+#else
+       (autogenModulesDir)
 #endif
 #if MIN_VERSION_Cabal(2,0,0)
 import Distribution.Types.MungedPackageId
@@ -335,8 +331,8 @@ generateBuildModule testSuiteName flags pkg lbi = do
     getBuildDoctests withExeLBI (NameExe . executableName) (const [])     (Just . modulePath) buildInfo
 
     components <- readIORef componentsRef
-    F.for_ components $ \(Component name pkgs flags sources) -> do
-       let compSuffix          = nameToString name
+    F.for_ components $ \(Component cmpName cmpPkgs cmpFlags cmpSources) -> do
+       let compSuffix          = nameToString cmpName
            pkgs_comp           = "pkgs"           ++ compSuffix
            flags_comp          = "flags"          ++ compSuffix
            module_sources_comp = "module_sources" ++ compSuffix
@@ -345,13 +341,13 @@ generateBuildModule testSuiteName flags pkg lbi = do
        appendFile buildDoctestsFile $ unlines
          [ -- -package-id etc. flags
            pkgs_comp ++ " :: [String]"
-         , pkgs_comp ++ " = " ++ show pkgs
+         , pkgs_comp ++ " = " ++ show cmpPkgs
          , ""
          , flags_comp ++ " :: [String]"
-         , flags_comp ++ " = " ++ show flags
+         , flags_comp ++ " = " ++ show cmpFlags
          , ""
          , module_sources_comp ++ " :: [String]"
-         , module_sources_comp ++ " = " ++ show sources
+         , module_sources_comp ++ " = " ++ show cmpSources
          , ""
          ]
 
