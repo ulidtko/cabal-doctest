@@ -73,7 +73,7 @@ import Distribution.Simple.LocalBuildInfo
 import Distribution.Simple.Setup
        (BuildFlags (buildDistPref, buildVerbosity), HaddockFlags (haddockDistPref, haddockVerbosity), fromFlag, emptyBuildFlags)
 import Distribution.Simple.Utils
-       (createDirectoryIfMissingVerbose, findFile, info)
+       (createDirectoryIfMissingVerbose, info)
 import Distribution.Text
        (display, simpleParse)
 import System.FilePath
@@ -100,6 +100,16 @@ import Distribution.PackageDescription
        (CondTree (..))
 #endif
 
+#if MIN_VERSION_Cabal(3,0,0)
+import Distribution.Simple.Utils (findFileEx)
+#else
+import Distribution.Simple.Utils (findFile)
+#endif
+
+#if MIN_VERSION_Cabal(3,0,0)
+import Distribution.Types.LibraryName (libraryNameString)
+#endif
+
 #if MIN_VERSION_directory(1,2,2)
 import System.Directory
        (makeAbsolute)
@@ -114,6 +124,11 @@ makeAbsolute p | isAbsolute p = return p
                | otherwise    = do
     cwd <- getCurrentDirectory
     return $ cwd </> p
+#endif
+
+#if !MIN_VERSION_Cabal(3,0,0)
+findFileEx :: verbosity -> [FilePath] -> FilePath -> IO FilePath
+findFileEx _ = findFile
 #endif
 
 -- | A default main with doctests:
@@ -303,7 +318,7 @@ generateBuildModule testSuiteName flags pkg lbi = do
            -- even though the main-is module is named Main, its filepath might
            -- actually be Something.hs. To account for this possibility, we simply
            -- pass the full path to the main-is module instead.
-           mainIsPath <- T.traverse (findFile iArgsNoPrefix) (compMainIs comp)
+           mainIsPath <- T.traverse (findFileEx verbosity iArgsNoPrefix) (compMainIs comp)
 
            let all_sources = map display module_sources
                              ++ additionalModules
@@ -429,7 +444,9 @@ generateBuildModule testSuiteName flags pkg lbi = do
        isSpecific _                     = False
 
     mbLibraryName :: Library -> Name
-#if MIN_VERSION_Cabal(2,0,0)
+#if MIN_VERSION_Cabal(3,0,0)
+    mbLibraryName = NameLib . fmap unUnqualComponentName . libraryNameString . libName
+#elif MIN_VERSION_Cabal(2,0,0)
     -- Cabal-2.0 introduced internal libraries, which are named.
     mbLibraryName = NameLib . fmap unUnqualComponentName . libName
 #else

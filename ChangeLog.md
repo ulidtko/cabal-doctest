@@ -1,3 +1,8 @@
+# 1.0.7 -- 2019-??-??
+
+* Make `Distribution.Extra.Doctest` `-Wall`-clean
+* Support GHC-8.8, base-4.13, and Cabal-3.0
+
 # 1.0.6 -- 2018-01-28
 
 * Hook `haddock` build too. Fixes issue when `haddock` fails, as
