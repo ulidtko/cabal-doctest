@@ -76,6 +76,10 @@ import Distribution.Simple.Utils
        (createDirectoryIfMissingVerbose, findFile, info)
 import Distribution.Text
        (display, simpleParse)
+#if MIN_VERSION_Cabal(3,0,0)
+import Distribution.Types.LibraryName
+       (libraryNameString)
+#endif
 import System.FilePath
        ((</>))
 
@@ -429,7 +433,9 @@ generateBuildModule testSuiteName flags pkg lbi = do
        isSpecific _                     = False
 
     mbLibraryName :: Library -> Name
-#if MIN_VERSION_Cabal(2,0,0)
+#if MIN_VERSION_Cabal(3,0,0)
+    mbLibraryName = NameLib . fmap unUnqualComponentName . libraryNameString . libName
+#elif MIN_VERSION_Cabal(2,0,0)
     -- Cabal-2.0 introduced internal libraries, which are named.
     mbLibraryName = NameLib . fmap unUnqualComponentName . libName
 #else
