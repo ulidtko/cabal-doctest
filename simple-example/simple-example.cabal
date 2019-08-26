@@ -38,7 +38,7 @@ test-suite doctests
   build-depends:
       base
     , doctest           >=0.15 && <0.17
-    , QuickCheck        >=2.12 && <2.13
+    , QuickCheck        >=2.12 && <2.14
     , simple-example
     , template-haskell
 

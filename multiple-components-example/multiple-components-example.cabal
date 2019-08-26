@@ -52,7 +52,7 @@ test-suite doctests
       base
     , doctest                      >=0.15 && <0.17
     , multiple-components-example
-    , QuickCheck                   >=2.12 && <2.13
+    , QuickCheck                   >=2.12 && <2.14
     , template-haskell
 
   ghc-options:          -Wall -threaded
