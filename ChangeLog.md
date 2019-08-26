@@ -1,3 +1,11 @@
+# next
+
+* Don't import `Prelude` in the generated `Build_doctests` modules.
+
+  `Prelude` is a magical module name, and it may be useful for users
+  to define their own `Prelude` modules which may not coincide with
+  the `Prelude` from `base`.
+
 # 1.0.6 -- 2018-01-28
 
 * Hook `haddock` build too. Fixes issue when `haddock` fails, as
