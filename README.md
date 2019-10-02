@@ -221,6 +221,20 @@ or
         :: Language.Haskell.TH.Syntax.Name -> Language.Haskell.TH.Lib.ExpQ
 ```
 
+* From version 2, Stack sets the `GHC_ENVRIONMENT` variable, and GHC
+  (as invoked by `doctest`) will pick that up. This is undesirable:
+  `cabal-doctest` passes all the necessary information on the command
+  line already, and can lead to ambiguous module errors as GHC will
+  load the environment in addition to what `cabal-doctest` instructs
+  it to.
+
+  Hence, `cabal-doctest` tells GHC to ignore package environments
+  altogether on the command line. However, this is only possible since
+  GHC 8.2. If you are using `cabal-doctest` with Stack 2 and GHC 8.0
+  or earlier and seeing ambiguous module errors or other mysterious
+  failures, try manually unsetting `GHC_ENVIRONMENT` before invoking
+  `doctest`.
+
 Copyright
 ---------
 
