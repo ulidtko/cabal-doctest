@@ -1,4 +1,9 @@
-# 1.0.7 -- 2019-??-??
+# 1.0.8 -- 2019-10-02
+
+* Pass `-package-env=-` when compiler supports it
+* Amend examples to `unsetEnv "GHC_ENVIRONMENT"`
+
+# 1.0.7 -- 2019-08-26
 
 * Make `Distribution.Extra.Doctest` `-Wall`-clean
 * Support GHC-8.8, base-4.13, and Cabal-3.0
