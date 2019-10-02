@@ -1,16 +1,24 @@
 steps:
+  - simple_align:
+      cases: false
+      top_level_patterns: false
+      records: false
   - imports:
       align: group
       list_align: new_line
       long_list_align: new_line
       empty_list_align: right_after
       list_padding: module_name
+      separate_lists: true
+
   - language_pragmas:
       style: vertical
+      align: true
       remove_redundant: true
   - trailing_whitespace: {}
 columns: 80
+newline: lf
 language_extensions:
-  - MultiParamTypeClasses
   - FlexibleContexts
-  - ExplicitForAll
+  - TemplateHaskell
+  - QuasiQuotes

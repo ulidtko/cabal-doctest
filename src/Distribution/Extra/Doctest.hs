@@ -46,47 +46,51 @@ module Distribution.Extra.Doctest (
 
 import Control.Monad
        (when)
+import Data.IORef
+       (modifyIORef, newIORef, readIORef)
 import Data.List
        (nub)
 import Data.Maybe
-       (maybeToList, mapMaybe)
+       (mapMaybe, maybeToList)
 import Data.String
        (fromString)
-import qualified Data.Foldable as F
-       (for_)
-import qualified Data.Traversable as T
-       (traverse)
 import Distribution.Package
-       (InstalledPackageId)
-import Distribution.Package
-       (Package (..), PackageId, packageVersion)
+       (InstalledPackageId, Package (..))
 import Distribution.PackageDescription
-       (BuildInfo (..), Executable (..), Library (..), GenericPackageDescription,
-       PackageDescription (), TestSuite (..))
+       (BuildInfo (..), Executable (..), GenericPackageDescription,
+       Library (..), PackageDescription, TestSuite (..))
 import Distribution.Simple
-       (UserHooks (..), autoconfUserHooks, defaultMainWithHooks, simpleUserHooks)
+       (UserHooks (..), autoconfUserHooks, defaultMainWithHooks,
+       simpleUserHooks)
 import Distribution.Simple.Compiler
-       (PackageDB (..), showCompilerId)
+       (CompilerFlavor (GHC), CompilerId (..), PackageDB (..), compilerId)
 import Distribution.Simple.LocalBuildInfo
-       (ComponentLocalBuildInfo (componentPackageDeps), LocalBuildInfo (),
+       (ComponentLocalBuildInfo (componentPackageDeps), LocalBuildInfo,
        compiler, withExeLBI, withLibLBI, withPackageDB, withTestLBI)
 import Distribution.Simple.Setup
-       (BuildFlags (buildDistPref, buildVerbosity), HaddockFlags (haddockDistPref, haddockVerbosity), fromFlag, emptyBuildFlags)
+       (BuildFlags (buildDistPref, buildVerbosity),
+       HaddockFlags (haddockDistPref, haddockVerbosity), emptyBuildFlags,
+       fromFlag)
 import Distribution.Simple.Utils
        (createDirectoryIfMissingVerbose, info)
 import Distribution.Text
-       (display, simpleParse)
+       (display)
 import System.FilePath
        ((</>))
 
-import Data.IORef (newIORef, modifyIORef, readIORef)
+import qualified Data.Foldable    as F
+                 (for_)
+import qualified Data.Traversable as T
+                 (traverse)
 
-import Distribution.Simple.BuildPaths
 #if MIN_VERSION_Cabal(1,25,0)
+import Distribution.Simple.BuildPaths
        (autogenComponentModulesDir)
 #else
+import Distribution.Simple.BuildPaths
        (autogenModulesDir)
 #endif
+
 #if MIN_VERSION_Cabal(2,0,0)
 import Distribution.Types.MungedPackageId
        (MungedPackageId)
@@ -94,20 +98,31 @@ import Distribution.Types.UnqualComponentName
        (unUnqualComponentName)
 
 -- For amendGPD
-import Distribution.Types.GenericPackageDescription
-       (GenericPackageDescription (condTestSuites))
 import Distribution.PackageDescription
        (CondTree (..))
-#endif
+import Distribution.Types.GenericPackageDescription
+       (GenericPackageDescription (condTestSuites))
 
-#if MIN_VERSION_Cabal(3,0,0)
-import Distribution.Simple.Utils (findFileEx)
+import Distribution.Version
+       (mkVersion)
 #else
-import Distribution.Simple.Utils (findFile)
+import Data.Version
+       (Version (..))
+import Distribution.Package
+       (PackageId)
 #endif
 
 #if MIN_VERSION_Cabal(3,0,0)
-import Distribution.Types.LibraryName (libraryNameString)
+import Distribution.Simple.Utils
+       (findFileEx)
+#else
+import Distribution.Simple.Utils
+       (findFile)
+#endif
+
+#if MIN_VERSION_Cabal(3,0,0)
+import Distribution.Types.LibraryName
+       (libraryNameString)
 #endif
 
 #if MIN_VERSION_directory(1,2,2)
@@ -130,6 +145,15 @@ makeAbsolute p | isAbsolute p = return p
 findFileEx :: verbosity -> [FilePath] -> FilePath -> IO FilePath
 findFileEx _ = findFile
 #endif
+
+#if !MIN_VERSION_Cabal(2,0,0)
+mkVersion :: [Int] -> Version
+mkVersion ds = Version ds []
+#endif
+
+-------------------------------------------------------------------------------
+-- Mains
+-------------------------------------------------------------------------------
 
 -- | A default main with doctests:
 --
@@ -392,15 +416,14 @@ generateBuildModule testSuiteName flags pkg lbi = do
     parseComponentName _ = Nothing
 
     -- we do this check in Setup, as then doctests don't need to depend on Cabal
-    isOldCompiler = maybe False id $ do
-      a <- simpleParse $ showCompilerId $ compiler lbi
-      b <- simpleParse "7.5"
-      return $ packageVersion (a :: PackageId) < b
+    isNewCompiler = case compilerId $ compiler lbi of
+      CompilerId GHC v -> v >= mkVersion [7,6]
+      _                -> False
 
-    ghcCanBeToldToIgnorePkgEnvs = maybe False id $ do
-      a <- simpleParse "8.2"
-      b <- simpleParse $ showCompilerId $ compiler lbi
-      return $ packageVersion (a :: PackageId) < b
+    ghcCanBeToldToIgnorePkgEnvs :: Bool
+    ghcCanBeToldToIgnorePkgEnvs = case compilerId $ compiler lbi of
+      CompilerId GHC v -> v >= mkVersion [8,4,4]
+      _                -> False
 
     formatDeps = map formatOne
     formatOne (installedPkgId, pkgId)
@@ -417,8 +440,8 @@ generateBuildModule testSuiteName flags pkg lbi = do
 
     -- From Distribution.Simple.Program.GHC
     packageDbArgs :: [PackageDB] -> [String]
-    packageDbArgs | isOldCompiler = packageDbArgsConf
-                  | otherwise     = packageDbArgsDb
+    packageDbArgs | isNewCompiler = packageDbArgsDb
+                  | otherwise     = packageDbArgsConf
 
     -- GHC <7.6 uses '-package-conf' instead of '-package-db'.
     packageDbArgsConf :: [PackageDB] -> [String]
@@ -485,7 +508,7 @@ amendGPD
     -> GenericPackageDescription
     -> GenericPackageDescription
 #if !(MIN_VERSION_Cabal(2,0,0))
-amendGPD _ = id
+amendGPD _ gpd = gpd
 #else
 amendGPD testSuiteName gpd = gpd
     { condTestSuites = map f (condTestSuites gpd)
