@@ -49,15 +49,22 @@ module Main where
 
 import Build_doctests (flags, pkgs, module_sources)
 import Data.Foldable (traverse_)
+import System.Environment.Compat (unsetEnv)
 import Test.DocTest (doctest)
 
 main :: IO ()
 main = do
     traverse_ putStrLn args -- optionally print arguments
+    unsetEnv "GHC_ENVIRONMENT" -- see 'Notes'; you may not need this
     doctest args
   where
     args = flags ++ pkgs ++ module_sources
 ```
+
+(The `System.Environment.Compat` module is from the `base-compat`
+package. That's already in the transitive closure of `doctest`'s
+dependencies. If you don't need to support GHC 7.6 or earlier, you can
+use `System.Environment` from `base` instead.)
 
 Example with multiple .cabal components
 ---------------------------------------
@@ -86,6 +93,7 @@ module Main where
 
 import Build_doctests (Component (..), components)
 import Data.Foldable (for_)
+import System.Environment.Compat (unsetEnv)
 import Test.DocTest (doctest)
 
 main :: IO ()
@@ -94,6 +102,7 @@ main = for_ components $ \(Component name flags pkgs sources) -> do
     putStrLn "----------------------------------------"
     let args = flags ++ pkgs ++ sources
     for_ args putStrLn
+    unsetEnv "GHC_ENVIRONMENT"
     doctest args
 ```
 
@@ -114,10 +123,12 @@ import Build_doctests
        (flags,            pkgs,            module_sources,
         flags_exe_my_exe, pkgs_exe_my_exe, module_sources_exe_my_exe)
 import Data.Foldable (traverse_)
+import System.Environment.Compat (unsetEnv)
 import Test.DocTest
 
 main :: IO ()
 main = do
+    unsetEnv "GHC_ENVRIONMENT"
     -- doctests for library
     traverse_ putStrLn libArgs
     doctest libArgs

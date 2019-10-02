@@ -50,9 +50,10 @@ test-suite doctests
   main-is:              doctests.hs
   build-depends:
       base
-    , doctest                      >=0.15 && <0.17
+    , base-compat                  >=0.11.0 && <0.12
+    , doctest                      >=0.15   && <0.17
     , multiple-components-example
-    , QuickCheck                   >=2.12 && <2.14
+    , QuickCheck                   >=2.12   && <2.14
     , template-haskell
 
   ghc-options:          -Wall -threaded
