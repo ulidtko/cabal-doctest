@@ -63,7 +63,8 @@ main = do
 
 (The `System.Environment.Compat` module is from the `base-compat`
 package. That's already in the transitive closure of `doctest`'s
-dependencies. If you don't need to support GHC 7.6 or earlier, you can
+dependencies. `System.Environment.unsetEnv` was added with GHC 7.8 so,
+if you don't need to support versions of GHC older than 7.8, you can
 use `System.Environment` from `base` instead.)
 
 Example with multiple .cabal components
