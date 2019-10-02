@@ -227,9 +227,12 @@ generateBuildModule testSuiteName flags pkg lbi = do
   let verbosity = fromFlag (buildVerbosity flags)
   let distPref = fromFlag (buildDistPref flags)
 
-  -- Package DBs
+  -- Package DBs & environments
   let dbStack = withPackageDB lbi ++ [ SpecificPackageDB $ distPref </> "package.conf.inplace" ]
   let dbFlags = "-hide-all-packages" : packageDbArgs dbStack
+  let envFlags
+        | ghcCanBeToldToIgnorePkgEnvs = [ "-package-env=-" ]
+        | otherwise = []
 
   withTestLBI pkg lbi $ \suite suitecfg -> when (testName suite == fromString testSuiteName) $ do
 #if MIN_VERSION_Cabal(1,25,0)
@@ -331,6 +334,7 @@ generateBuildModule testSuiteName flags pkg lbi = do
                   [ iArgs
                   , additionalDirs
                   , includeArgs
+                  , envFlags
                   , dbFlags
                   , cppFlags
                   , extensionArgs
@@ -391,6 +395,11 @@ generateBuildModule testSuiteName flags pkg lbi = do
     isOldCompiler = maybe False id $ do
       a <- simpleParse $ showCompilerId $ compiler lbi
       b <- simpleParse "7.5"
+      return $ packageVersion (a :: PackageId) < b
+
+    ghcCanBeToldToIgnorePkgEnvs = maybe False id $ do
+      a <- simpleParse "8.2"
+      b <- simpleParse $ showCompilerId $ compiler lbi
       return $ packageVersion (a :: PackageId) < b
 
     formatDeps = map formatOne

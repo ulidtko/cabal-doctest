@@ -49,15 +49,23 @@ module Main where
 
 import Build_doctests (flags, pkgs, module_sources)
 import Data.Foldable (traverse_)
+import System.Environment.Compat (unsetEnv)
 import Test.DocTest (doctest)
 
 main :: IO ()
 main = do
     traverse_ putStrLn args -- optionally print arguments
+    unsetEnv "GHC_ENVIRONMENT" -- see 'Notes'; you may not need this
     doctest args
   where
     args = flags ++ pkgs ++ module_sources
 ```
+
+(The `System.Environment.Compat` module is from the `base-compat`
+package. That's already in the transitive closure of `doctest`'s
+dependencies. `System.Environment.unsetEnv` was added with GHC 7.8 so,
+if you don't need to support versions of GHC older than 7.8, you can
+use `System.Environment` from `base` instead.)
 
 Example with multiple .cabal components
 ---------------------------------------
@@ -86,6 +94,7 @@ module Main where
 
 import Build_doctests (Component (..), components)
 import Data.Foldable (for_)
+import System.Environment.Compat (unsetEnv)
 import Test.DocTest (doctest)
 
 main :: IO ()
@@ -94,6 +103,7 @@ main = for_ components $ \(Component name flags pkgs sources) -> do
     putStrLn "----------------------------------------"
     let args = flags ++ pkgs ++ sources
     for_ args putStrLn
+    unsetEnv "GHC_ENVIRONMENT"
     doctest args
 ```
 
@@ -114,10 +124,12 @@ import Build_doctests
        (flags,            pkgs,            module_sources,
         flags_exe_my_exe, pkgs_exe_my_exe, module_sources_exe_my_exe)
 import Data.Foldable (traverse_)
+import System.Environment.Compat (unsetEnv)
 import Test.DocTest
 
 main :: IO ()
 main = do
+    unsetEnv "GHC_ENVRIONMENT"
     -- doctests for library
     traverse_ putStrLn libArgs
     doctest libArgs
@@ -220,6 +232,20 @@ or
       polyQuickCheck
         :: Language.Haskell.TH.Syntax.Name -> Language.Haskell.TH.Lib.ExpQ
 ```
+
+* From version 2, Stack sets the `GHC_ENVRIONMENT` variable, and GHC
+  (as invoked by `doctest`) will pick that up. This is undesirable:
+  `cabal-doctest` passes all the necessary information on the command
+  line already, and can lead to ambiguous module errors as GHC will
+  load the environment in addition to what `cabal-doctest` instructs
+  it to.
+
+  Hence, `cabal-doctest` tells GHC to ignore package environments
+  altogether on the command line. However, this is only possible since
+  GHC 8.2. If you are using `cabal-doctest` with Stack 2 and GHC 8.0
+  or earlier and seeing ambiguous module errors or other mysterious
+  failures, try manually unsetting `GHC_ENVIRONMENT` before invoking
+  `doctest`.
 
 Copyright
 ---------
