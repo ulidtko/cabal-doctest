@@ -301,7 +301,7 @@ generateBuildModule testSuiteName flags pkg lbi = do
           $ lookup "x-doctest-source-dirs"
           $ customFieldsBI testBI
 
-    additionalDirs <- mapM (fmap ("-i" ++) . makeAbsolute) additionalDirs'
+    additionalDirs <- fmap (fmap ("-i" ++) . (++ additionalDirs')) $ mapM makeAbsolute additionalDirs'
 
     let recordComponent mbCompName compExposedModules compMainIs compBuildInfo comp compCfg = do
            let compBI = compBuildInfo comp
