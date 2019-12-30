@@ -344,7 +344,8 @@ generateBuildModule testSuiteName flags pkg lbi = do
            -- pass the full path to the main-is module instead.
            mainIsPath <- T.traverse (findFileEx verbosity iArgsNoPrefix) (compMainIs comp)
 
-           let all_sources = map display module_sources
+           let all_sources = filter (/= "Build_doctests")
+                             $ map display module_sources
                              ++ additionalModules
                              ++ maybeToList mainIsPath
 
