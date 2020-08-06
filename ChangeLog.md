@@ -2,7 +2,6 @@
 
 * Pass `-package-env=-` when compiler supports it
 * Amend examples to `unsetEnv "GHC_ENVIRONMENT"`
-* Support GHC-9.0, base-4.15 and, Cabal-3.4
 
 # 1.0.7 -- 2019-08-26
 
