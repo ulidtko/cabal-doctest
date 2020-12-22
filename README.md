@@ -21,9 +21,9 @@ section in your `.cabal` file. For example:
 ```
 custom-setup
  setup-depends:
-   base >= 4 && <5,
-   Cabal,
-   cabal-doctest >= 1 && <1.1
+   base          >= 4 && < 5,
+   Cabal         >= 1.24,
+   cabal-doctest >= 1.0.8 && < 1.1
 ```
 
 /Note:/ `Cabal` dependency is needed because of

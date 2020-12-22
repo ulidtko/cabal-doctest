@@ -19,7 +19,7 @@ tested-with:   GHC >=7.10 && <8.8 || ==8.8.3 || ==8.10.1
 custom-setup
   setup-depends:
       base
-    , Cabal
+    , Cabal          >=1.24
     , cabal-doctest  >=1.0.8 && <1.1
 
 library
