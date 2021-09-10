@@ -21,7 +21,7 @@ custom-setup
   setup-depends:
       base
     , Cabal
-    , cabal-doctest  >=1.0.8 && <1.1
+    , cabal-doctest  >=1.0.9 && <1.1
 
 library
   exposed-modules:    Example
@@ -29,7 +29,7 @@ library
     RankNTypes
     ScopedTypeVariables
 
-  build-depends:      base >=4.3 && <4.16
+  build-depends:      base >=4.3 && <4.17
   hs-source-dirs:     src
   default-language:   Haskell2010
 
@@ -50,8 +50,8 @@ test-suite doctests
   main-is:              doctests.hs
   build-depends:
       base
-    , base-compat                  >=0.10.5 && <0.12
-    , doctest                      >=0.15   && <0.18
+    , base-compat                  >=0.10.5 && <0.13
+    , doctest                      >=0.15   && <0.19
     , multiple-components-example
     , QuickCheck                   >=2.12   && <2.15
     , template-haskell

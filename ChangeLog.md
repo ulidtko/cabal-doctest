@@ -1,3 +1,6 @@
+
+* Support GHC-9.2, base-4.16 and, Cabal-3.6
+
 # 1.0.8 -- 2019-10-02
 
 * Pass `-package-env=-` when compiler supports it
