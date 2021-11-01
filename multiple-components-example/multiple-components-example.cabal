@@ -15,7 +15,22 @@ maintainer:    Oleg Grenrus <oleg.grenrus@iki.fi>
 copyright:     (c) 2017 Oleg Grenrus
 category:      Example
 build-type:    Custom
-tested-with:   GHC >=7.10 && <8.8 || ==8.8.3 || ==8.10.1
+
+tested-with:
+  GHC == 7.0.4
+  GHC == 7.2.2
+  GHC == 7.4.2
+  GHC == 7.6.3
+  GHC == 7.8.4
+  GHC == 7.10.3
+  GHC == 8.0.2
+  GHC == 8.2.2
+  GHC == 8.4.4
+  GHC == 8.6.5
+  GHC == 8.8.4
+  GHC == 8.10.7
+  GHC == 9.0.1
+  GHC == 9.2.1
 
 custom-setup
   setup-depends:
@@ -36,6 +51,7 @@ library
 executable my-exe
   main-is:          Something.hs
   other-modules:    OtherModule
+                    Paths_multiple_components_example
   build-depends:
       base
     , multiple-components-example
