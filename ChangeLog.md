@@ -1,15 +1,16 @@
+# 1.0.9 -- 2021-11-04
 
-* Support GHC-9.2, base-4.16 and, Cabal-3.6
+* Support `GHC-9.2`, `base-4.16`, and `Cabal-3.6` (thanks Alistair Burrowes).
 
 # 1.0.8 -- 2019-10-02
 
-* Pass `-package-env=-` when compiler supports it
-* Amend examples to `unsetEnv "GHC_ENVIRONMENT"`
+* Pass `-package-env=-` when compiler supports it.
+* Amend examples to `unsetEnv "GHC_ENVIRONMENT"`.
 
 # 1.0.7 -- 2019-08-26
 
-* Make `Distribution.Extra.Doctest` `-Wall`-clean
-* Support GHC-8.8, base-4.13, and Cabal-3.0
+* Make `Distribution.Extra.Doctest` `-Wall`-clean.
+* Support `GHC-8.8`, `base-4.13`, and `Cabal-3.0`.
 
 # 1.0.6 -- 2018-01-28
 
@@ -29,23 +30,19 @@
 
 # 1.0.3 -- 2017-11-02
 
-* Add an explicit `Prelude` import to `Build_doctests`
+* Add an explicit `Prelude` import to `Build_doctests`.
 
 # 1.0.2 -- 2017-05-16
 
 * Add `defaultMainAutoconfWithDoctests` and `addDoctestsUserHook`.
-
 * Add support for `.hsc` and other preprocessed files
-  ([#8](https://github.com/phadej/cabal-doctest/issues/8))
-
+  ([#8](https://github.com/phadej/cabal-doctest/issues/8)).
 * Add support for `x-doctest-source-dirs` and `x-doctest-modules`.
 
 # 1.0.1 -- 2017-05-05
 
-* Add support for `x-doctest-options` cabal-file field
-
-* Proper support for GHC-8.2.1 & Cabal-2.0.0.0
-
+* Add support for `x-doctest-options` cabal-file field.
+* Proper support for `GHC-8.2.1` and `Cabal-2.0.0.0`.
 * Add support to `default-extensions` in library.
 
 # 1  -- 2017-01-31
