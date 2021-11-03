@@ -15,13 +15,28 @@ maintainer:    Oleg Grenrus <oleg.grenrus@iki.fi>
 copyright:     (c) 2017 Oleg Grenrus
 category:      Example
 build-type:    Custom
-tested-with:   GHC >=7.10 && <8.8 || ==8.8.3 || ==8.10.1
+
+tested-with:
+  GHC == 7.0.4
+  GHC == 7.2.2
+  GHC == 7.4.2
+  GHC == 7.6.3
+  GHC == 7.8.4
+  GHC == 7.10.3
+  GHC == 8.0.2
+  GHC == 8.2.2
+  GHC == 8.4.4
+  GHC == 8.6.5
+  GHC == 8.8.4
+  GHC == 8.10.7
+  GHC == 9.0.1
+  GHC == 9.2.1
 
 custom-setup
   setup-depends:
       base
     , Cabal
-    , cabal-doctest  >=1.0.8 && <1.1
+    , cabal-doctest  >=1.0.9 && <1.1
 
 library
   exposed-modules:    Example
@@ -29,13 +44,14 @@ library
     RankNTypes
     ScopedTypeVariables
 
-  build-depends:      base >=4.3 && <4.16
+  build-depends:      base >=4.3 && <4.17
   hs-source-dirs:     src
   default-language:   Haskell2010
 
 executable my-exe
   main-is:          Something.hs
   other-modules:    OtherModule
+                    Paths_multiple_components_example
   build-depends:
       base
     , multiple-components-example
@@ -50,8 +66,8 @@ test-suite doctests
   main-is:              doctests.hs
   build-depends:
       base
-    , base-compat                  >=0.10.5 && <0.12
-    , doctest                      >=0.15   && <0.18
+    , base-compat                  >=0.10.5 && <0.13
+    , doctest                      >=0.15   && <0.19
     , multiple-components-example
     , QuickCheck                   >=2.12   && <2.15
     , template-haskell
