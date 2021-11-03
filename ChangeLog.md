@@ -1,4 +1,4 @@
-# 1.0.9 -- 2021-11-04
+# 1.0.9 -- 2021-11-07
 
 * Support `GHC-9.2`, `base-4.16`, and `Cabal-3.6` (thanks Alistair Burrowes).
 

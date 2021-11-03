@@ -1,19 +1,16 @@
 cabal-doctest
 =============
 
-[![Hackage](https://img.shields.io/hackage/v/cabal-doctest.svg)](https://hackage.haskell.org/package/cabal-doctest) [![Build Status](https://travis-ci.org/phadej/cabal-doctest.svg?branch=master)](https://travis-ci.org/phadej/cabal-doctest)
+[![Hackage](https://img.shields.io/hackage/v/cabal-doctest.svg)](https://hackage.haskell.org/package/cabal-doctest) [![Haskell-CI](https://github.com/haskellari/cabal-doctest/actions/workflows/haskell-ci.yml/badge.svg?branch=master)](https://github.com/haskellari/cabal-doctest/actions/workflows/haskell-ci.yml)
 
 A `Setup.hs` helper for running `doctests`.
 
 Simple example
 --------------
 
-For most use cases—a `.cabal` file with a single library containing
-doctests—adapting the simple example located
-[here](https://github.com/phadej/cabal-doctest/tree/master/simple-example)
-will be sufficient. (Note that this example requires `Cabal-1.24` or later, but
-you can relax this bound safely, although running doctests won't be supported
-on versions of `Cabal` older than 1.24.)
+For the typical use case, namely a `.cabal` file with a single library containing
+doctests, adapting the [simple example](https://github.com/phadej/cabal-doctest/tree/master/simple-example)
+will be sufficient.
 
 To use this library in your `Setup.hs`, you should specify a `custom-setup`
 section in your `.cabal` file. For example:
@@ -26,8 +23,8 @@ custom-setup
    cabal-doctest >= 1 && <1.1
 ```
 
-/Note:/ `Cabal` dependency is needed because of
-[Cabal/GH-4288](https://github.com/haskell/cabal/issues/4288) bug.
+_Note:_ The `Cabal` dependency is only needed for `cabal-install < 2.4`
+(see issue [haskell/cabal#4288](https://github.com/haskell/cabal/issues/4288)).
 
 You'll also need to specify `build-type: Custom` at the top of the `.cabal`
 file. Now put this into your `Setup.hs` file:
@@ -73,8 +70,8 @@ Example with multiple .cabal components
 `cabal-doctest` also supports more exotic use cases where a `.cabal` file
 contains more components with doctests than just the main library, including:
 
-* Doctests in executables
-* Doctests in Internal libraries (if using `Cabal-2.0` or later)
+* doctests in executables,
+* doctests in internal libraries (if using `Cabal-2.0` or later).
 
 Unlike the simple example shown above, these examples involve _named_
 components. You don't need to change the `Setup.hs` script to support
@@ -82,12 +79,12 @@ this use case. However, in this scenario `Build_doctests` will generate extra
 copies of the `flags`, `pkgs`, and `module_sources` values for each additional
 named component.
 
-Simplest approach is to use `x-doctest-components` field, for example
+Simplest approach is to use `x-doctest-components` field, for example:
 ```
 x-doctest-components: lib lib:internal exe:example
 ```
 
-In that case, the testdrive is general:
+In that case, the test driver is generally:
 
 ```haskell
 module Main where
@@ -107,7 +104,7 @@ main = for_ components $ \(Component name flags pkgs sources) -> do
     doctest args
 ```
 
-There's also a more explicit approach: if you have an executable named `foo`,
+There is also a more explicit approach: if you have an executable named `foo`,
 then separate values named `flags_exe_foo`, `pkgs_exe_foo`, and `module_sources_exe_foo` will
 be generated in `Build_doctests`. If the name has hyphens in it
 (e.g., `my-exe`), then `cabal-doctest` will convert those hyphens to
@@ -193,10 +190,6 @@ Notes
   you have to use `explicit-setup-deps` setting in your `stack.yaml`.
   ([stack/GH-2094](https://github.com/commercialhaskell/stack/issues/2094))
 
-* There is [an issue in the Cabal issue tracker](https://github.com/haskell/cabal/issues/2327)
-  about adding `cabal doctest` command. After that command is implemented,
-  this library will be deprecated.
-
 * You can use `x-doctest-options` field in `test-suite doctests` to
   pass additional flags to the `doctest`.
 
@@ -207,7 +200,7 @@ Notes
   might fail with weird errors (ambiguous module errors). Workaround is
   to move sources under `src/` or some non-top-level directory.
 
-* `extensions:` field isn't supported. Upgrade your `.cabal` file to use at least
+* The `extensions:` field isn't supported. Upgrade your `.cabal` file to use at least
   `cabal-version: >= 1.10` and use `default-extensions` or `other-extensions`.
 
 * If you use QuickCheck properties (`prop>`) in your doctests,

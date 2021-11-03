@@ -1,18 +1,16 @@
 name:               cabal-doctest
 version:            1.0.9
-synopsis:           A Setup.hs helper for doctests running
+synopsis:           A Setup.hs helper for running doctests
 description:
-  Currently (beginning of 2017), there isn't @cabal doctest@
-  command. Yet, to properly work doctest needs plenty of configuration.
-  This library provides the common bits for writing custom Setup.hs
-  See <https://github.com/haskell/cabal/issues/2327 Cabal/2327> for the progress
-  of @cabal doctest@, i.e. whether this library is obsolete.
+  As of now (end of 2021), there isn't @cabal doctest@
+  command. Yet, to properly work, @doctest@ needs plenty of configuration.
+  This library provides the common bits for writing a custom @Setup.hs@.
 
-homepage:           https://github.com/phadej/cabal-doctest
+homepage:           https://github.com/haskellari/cabal-doctest
 license:            BSD3
 license-file:       LICENSE
 author:             Oleg Grenrus <oleg.grenrus@iki.fi>
-maintainer:         Oleg Grenrus <oleg.grenrus@iki.fi>
+maintainer:         Andreas Abel
 copyright:          (c) 2017 Oleg Grenrus
 category:           Distribution
 build-type:         Simple
@@ -39,7 +37,7 @@ tested-with:
 
 source-repository head
   type:     git
-  location: https://github.com/phadej/cabal-doctest
+  location: https://github.com/haskellari/cabal-doctest
 
 library
   exposed-modules:  Distribution.Extra.Doctest
