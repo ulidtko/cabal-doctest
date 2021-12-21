@@ -38,8 +38,8 @@ main :: IO ()
 main = defaultMainWithDoctests "doctests"
 ```
 
-When you build your project, this `Setup` will generate a `Build_doctests`
-module. To use it in a testsuite, simply do this:
+Given your test-suite is called `doctests`, When you build your project, this `Setup` will generate a `Build_doctests`
+module. If your test-suite goes by another name, like `foo`. This creates a `Build_foo` module. To use it in a testsuite, simply do this:
 
 ```haskell
 module Main where
