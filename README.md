@@ -38,8 +38,10 @@ main :: IO ()
 main = defaultMainWithDoctests "doctests"
 ```
 
-When you build your project, this `Setup` will generate a `Build_doctests`
-module. To use it in a testsuite, simply do this:
+Given your test-suite is called `doctests`, when you build your project,
+this `Setup` will generate a `Build_doctests` module. 
+(Note: If your test-suite goes by another name, like `foo`, this creates a `Build_foo` module.) 
+To use the generated module in a testsuite, simply do like so:
 
 ```haskell
 module Main where
@@ -59,7 +61,7 @@ main = do
 ```
 
 (The `System.Environment.Compat` module is from the `base-compat`
-package. That's already in the transitive closure of `doctest`'s
+package. This package already in the transitive closure of `doctest`'s
 dependencies. `System.Environment.unsetEnv` was added with GHC 7.8 so,
 if you don't need to support versions of GHC older than 7.8, you can
 use `System.Environment` from `base` instead.)
