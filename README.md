@@ -239,6 +239,27 @@ or
   or earlier and seeing ambiguous module errors or other mysterious
   failures, try manually unsetting `GHC_ENVIRONMENT` before invoking
   `doctest`.
+  
+ * If you are on Nix. `doctest` will not pick up your version of GHC if you
+   don't point it towards it, and therefore will result in "cannot satisfy -package-id" errors.
+   You will need to set the following variables within your environment in order
+   for doctest to pick up your GHC, with /lib/ghc-8.10.7 changed to your version of ghc:
+```nix
+{ pkgs ? import <nixpkgs> {} }:
+let
+  myHaskell = (pkgs.haskellPackages.ghcWithHoogle (p: with p; [ ... ]));
+in
+pkgs.mkShell {
+  name = "myPackage";
+  shellHook = ''
+    export NIX_GHC=${myHaskell}/bin/ghc
+    export NIX_GHC_LIBDIR=${myHaskell}/lib/ghc-8.10.7
+  '';
+  buildInputs = with pkgs; [ 
+    myHaskell
+  ];
+}
+```
 
 Copyright
 ---------
