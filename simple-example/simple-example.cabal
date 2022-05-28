@@ -9,27 +9,28 @@ homepage:      https://github.com/phadej/cabal-doctest
 license:       BSD3
 license-file:  LICENSE
 author:        Oleg Grenrus <oleg.grenrus@iki.fi>
-maintainer:    Oleg Grenrus <oleg.grenrus@iki.fi>
+maintainer:    Andreas Abel
 copyright:     (c) 2017 Oleg Grenrus
 category:      Example
 build-type:    Custom
 cabal-version: 1.12
 
 tested-with:
-  GHC == 7.0.4
-  GHC == 7.2.2
-  GHC == 7.4.2
-  GHC == 7.6.3
-  GHC == 7.8.4
-  GHC == 7.10.3
-  GHC == 8.0.2
-  GHC == 8.2.2
-  GHC == 8.4.4
-  GHC == 8.6.5
-  GHC == 8.8.4
+  GHC == 9.4.1
+  GHC == 9.2.3
+  GHC == 9.0.2
   GHC == 8.10.7
-  GHC == 9.0.1
-  GHC == 9.2.1
+  GHC == 8.8.4
+  GHC == 8.6.5
+  GHC == 8.4.4
+  GHC == 8.2.2
+  GHC == 8.0.2
+  GHC == 7.10.3
+  GHC == 7.8.4
+  GHC == 7.6.3
+  GHC == 7.4.2
+  GHC == 7.2.2
+  GHC == 7.0.4
 
 custom-setup
   setup-depends:
@@ -43,7 +44,7 @@ library
     RankNTypes
     ScopedTypeVariables
 
-  build-depends:      base >=4.3 && <4.17
+  build-depends:      base >=4.3 && <5
   hs-source-dirs:     src
   default-language:   Haskell2010
 
@@ -53,7 +54,7 @@ test-suite doctests
   build-depends:
       base
     , base-compat       >=0.10.5 && <0.13
-    , doctest           >=0.15   && <0.19
+    , doctest           >=0.15   && <0.21
     , QuickCheck        >=2.12   && <2.15
     , simple-example
     , template-haskell
