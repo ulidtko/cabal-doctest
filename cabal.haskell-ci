@@ -1,2 +1,2 @@
-branches: master
+branches: master ci-*
 jobs-selection: any
