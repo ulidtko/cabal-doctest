@@ -16,8 +16,9 @@ build-type:    Custom
 cabal-version: 1.12
 
 tested-with:
-  GHC == 9.4.1
-  GHC == 9.2.3
+  GHC == 9.6.2
+  GHC == 9.4.5
+  GHC == 9.2.8
   GHC == 9.0.2
   GHC == 8.10.7
   GHC == 8.8.4
@@ -54,7 +55,7 @@ test-suite doctests
   build-depends:
       base
     , base-compat       >=0.10.5 && <0.13
-    , doctest           >=0.15   && <0.21
+    , doctest           >=0.15   && <0.23
     , QuickCheck        >=2.12   && <2.15
     , simple-example
     , template-haskell
