@@ -1,2 +1,5 @@
-branches: master ci-*
-jobs-selection: any
+branches: master
+-- jobs-selection: any
+
+-- Older haddocks error out for various reasons
+haddock: >= 9.4
