@@ -17,9 +17,10 @@ category:      Example
 build-type:    Custom
 
 tested-with:
-  GHC == 9.8.1
-  GHC == 9.6.3
-  GHC == 9.4.7
+  GHC == 9.10.0
+  GHC == 9.8.2
+  GHC == 9.6.5
+  GHC == 9.4.8
   GHC == 9.2.8
   GHC == 9.0.2
   GHC == 8.10.7
@@ -69,10 +70,10 @@ test-suite doctests
   main-is:              doctests.hs
   build-depends:
       base
-    , base-compat                  >=0.10.5 && <0.13
-    , doctest                      >=0.15   && <0.23
+    , base-compat                  >=0.10.5 && <1
+    , doctest                      >=0.15   && <1
     , multiple-components-example
-    , QuickCheck                   >=2.12   && <2.15
+    , QuickCheck                   >=2.12   && <3
     , template-haskell
 
   ghc-options:          -Wall -threaded
