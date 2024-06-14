@@ -52,7 +52,7 @@ library
   build-depends:
     -- upper-bounds are major-major only, unless there is evidence for build failures
       base       >=4.3  && <5
-    , Cabal      >=1.10 && <4
+    , Cabal      >=1.10 && <3.14
     , directory
     , filepath
 
