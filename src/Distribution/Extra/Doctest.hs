@@ -1,25 +1,29 @@
 {-# LANGUAGE CPP               #-}
 {-# LANGUAGE OverloadedStrings #-}
--- | The provided 'generateBuildModule' generates 'Build_doctests' module.
--- That module exports enough configuration, so your doctests could be simply
+-- | See cabal-doctest README for full-fledged recipes & caveats.
+--
+-- The provided 'generateBuildModule' generates a @Build_{suffix}@ module, with
+-- caller-chosen @suffix@ that is usually @"doctests"@ -- module @Build_doctests@.
+--
+-- That module exports just enough compiler flags, so that doctest could be simply
 --
 -- @
 -- module Main where
 --
 -- import Build_doctests (flags, pkgs, module_sources)
--- import Data.Foldable (traverse_)
 -- import Test.Doctest (doctest)
 --
 -- main :: IO ()
--- main = do
---     traverse_ putStrLn args -- optionally print arguments
---     doctest args
+-- main = doctest args
 --   where
 --     args = flags ++ pkgs ++ module_sources
 -- @
 --
--- To use this library in the @Setup.hs@, you should specify a @custom-setup@
--- section in the cabal file, for example:
+-- As this module-generation is done at build-time, 'generateBuildModule' must be
+-- invoked from @Setup.hs@, which also necessarily means @build-type: Custom@.
+--
+-- @Setup.hs@ can use libraries, but they must be declared as dependencies in the
+-- @custom-setup@ stanza of the user's cabal file. To use @cabal-doctest@ then:
 --
 -- @
 -- custom-setup
@@ -28,8 +32,8 @@
 --    cabal-doctest >= 1 && <1.1
 -- @
 --
--- /Note:/ you don't need to depend on @Cabal@  if you use only
--- 'defaultMainWithDoctests' in the @Setup.hs@.
+-- Finally, simple shortcuts are provided to avoid an explicit dependency on @Cabal@
+-- from @setup-depends@: 'defaultMainWithDoctests' and 'defaultMainAutoconfWithDoctests'.
 --
 module Distribution.Extra.Doctest (
     defaultMainWithDoctests,
@@ -160,7 +164,7 @@ mkVersion ds = Version ds []
 -- Mains
 -------------------------------------------------------------------------------
 
--- | A default main with doctests:
+-- | A default @Setup.hs@ main with doctests:
 --
 -- @
 -- import Distribution.Extra.Doctest
@@ -174,7 +178,7 @@ defaultMainWithDoctests
     -> IO ()
 defaultMainWithDoctests = defaultMainWithHooks . doctestsUserHooks
 
--- | Like 'defaultMainWithDoctests', for 'build-type: Configure' packages.
+-- | Like 'defaultMainWithDoctests', but for packages with @build-type: Configure@.
 --
 -- @since 1.0.2
 defaultMainAutoconfWithDoctests
@@ -183,14 +187,16 @@ defaultMainAutoconfWithDoctests
 defaultMainAutoconfWithDoctests n =
     defaultMainWithHooks (addDoctestsUserHook n autoconfUserHooks)
 
--- | 'simpleUserHooks' with 'generateBuildModule' prepended to the 'buildHook'.
+-- | 'simpleUserHooks' with 'generateBuildModule' already wired-in.
 doctestsUserHooks
     :: String  -- ^ doctests test-suite name
     -> UserHooks
 doctestsUserHooks testsuiteName =
     addDoctestsUserHook testsuiteName simpleUserHooks
 
--- |
+-- | Compose 'generateBuildModule' into Cabal's 'UserHooks' (prepending the action).
+--
+-- This is exported for advanced custom Setup-s.
 --
 -- @since 1.0.2
 addDoctestsUserHook :: String -> UserHooks -> UserHooks
@@ -198,9 +204,9 @@ addDoctestsUserHook testsuiteName uh = uh
     { buildHook = \pkg lbi hooks flags -> do
         generateBuildModule testsuiteName flags pkg lbi
         buildHook uh pkg lbi hooks flags
-    -- We use confHook to add "Build_Doctests" to otherModules and autogenModules.
+    -- We use confHook to add "Build_doctests" to otherModules and autogenModules.
     --
-    -- We cannot use HookedBuildInfo as it let's alter only the library and executables.
+    -- We cannot use HookedBuildInfo as it lets alter only the library and executables.
     , confHook = \(gpd, hbi) flags ->
         confHook uh (amendGPD testsuiteName gpd, hbi) flags
     , haddockHook = \pkg lbi hooks flags -> do

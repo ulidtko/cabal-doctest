@@ -1,73 +1,73 @@
 cabal-doctest
 =============
 
-[![Hackage](https://img.shields.io/hackage/v/cabal-doctest.svg)](https://hackage.haskell.org/package/cabal-doctest) [![Haskell-CI](https://github.com/haskellari/cabal-doctest/actions/workflows/haskell-ci.yml/badge.svg?branch=master)](https://github.com/haskellari/cabal-doctest/actions/workflows/haskell-ci.yml)
+[![Hackage](https://img.shields.io/hackage/v/cabal-doctest.svg)](https://hackage.haskell.org/package/cabal-doctest) [![Haskell-CI](https://github.com/ulidtko/cabal-doctest/actions/workflows/haskell-ci.yml/badge.svg?branch=master)](https://github.com/ulidtko/cabal-doctest/actions/workflows/haskell-ci.yml)
 
-A `Setup.hs` helper for running `doctests`.
+A `Setup.hs` helper for running [doctests][].
+
+[doctests]: https://github.com/sol/doctest#readme
 
 Simple example
 --------------
 
-For the typical use case, namely a `.cabal` file with a single library containing
-doctests, adapting the [simple example](https://github.com/phadej/cabal-doctest/tree/master/simple-example)
-will be sufficient.
+[simple example]: https://github.com/ulidtko/cabal-doctest/tree/master/simple-example
+[simple-example.cabal]: https://github.com/ulidtko/cabal-doctest/tree/master/simple-example/simple-example.cabal
 
-To use this library in your `Setup.hs`, you should specify a `custom-setup`
-section in your `.cabal` file. For example:
+Follow [simple example][] for the common case of a single-library `.cabal` package with doctests.
 
-```
-custom-setup
- setup-depends:
-   base >= 4 && <5,
-   Cabal,
-   cabal-doctest >= 1 && <1.1
-```
+To recap the example's code:
 
-_Note:_ The `Cabal` dependency is only needed for `cabal-install < 2.4`
-(see issue [haskell/cabal#4288](https://github.com/haskell/cabal/issues/4288)).
+1. specify `build-type: Custom` in your `.cabal` file;
 
-You'll also need to specify `build-type: Custom` at the top of the `.cabal`
-file. Now put this into your `Setup.hs` file:
+2. declare dependencies of `Setup.hs`:
 
-```haskell
-module Main where
+   ```
+   custom-setup
+    setup-depends:
+      base >= 4 && <5,
+      cabal-doctest >= 1 && <1.1
+   ```
 
-import Distribution.Extra.Doctest (defaultMainWithDoctests)
+   See [Notes](#notes) below for a caveat with cabal-install < 2.4.
 
-main :: IO ()
-main = defaultMainWithDoctests "doctests"
-```
+3. Populate `Setup.hs` like so:
 
-Given your test-suite is called `doctests`, when you build your project,
-this `Setup` will generate a `Build_doctests` module. 
-(Note: If your test-suite goes by another name, like `foo`, this creates a `Build_foo` module.) 
-To use the generated module in a testsuite, simply do like so:
+   ```haskell
+   module Main where
 
-```haskell
-module Main where
+   import Distribution.Extra.Doctest (defaultMainWithDoctests)
 
-import Build_doctests (flags, pkgs, module_sources)
-import Data.Foldable (traverse_)
-import System.Environment.Compat (unsetEnv)
-import Test.DocTest (doctest)
+   main :: IO ()
+   main = defaultMainWithDoctests "doctests"
+   ```
 
-main :: IO ()
-main = do
-    traverse_ putStrLn args -- optionally print arguments
-    unsetEnv "GHC_ENVIRONMENT" -- see 'Notes'; you may not need this
-    doctest args
-  where
-    args = flags ++ pkgs ++ module_sources
-```
+   Assuming your test-suite is called `doctests`, this `Setup` will generate a `Build_doctests`
+   module during package build. If your test-suite goes by name `foo`,
+   `defaultMainWithDoctests "foo"` creates a `Build_foo` module.
 
-(The `System.Environment.Compat` module is from the `base-compat`
-package. This package already in the transitive closure of `doctest`'s
-dependencies. `System.Environment.unsetEnv` was added with GHC 7.8 so,
-if you don't need to support versions of GHC older than 7.8, you can
-use `System.Environment` from `base` instead.)
+4. Use the generated module in a testsuite, simply like so:
 
-Example with multiple .cabal components
----------------------------------------
+   ```haskell
+   module Main where
+
+   import Build_doctests (flags, pkgs, module_sources)
+   import Data.Foldable (traverse_)
+   import System.Environment (unsetEnv)
+   import Test.DocTest (doctest)
+
+   main :: IO ()
+   main = do
+       traverse_ putStrLn args -- optionally print arguments
+       unsetEnv "GHC_ENVIRONMENT" -- see 'Notes'; you may not need this
+       doctest args
+     where
+       args = flags ++ pkgs ++ module_sources
+   ```
+
+Ultimately, `cabal test` or `stack test` should run the doctests of your package.
+
+Example with multiple cabal components
+--------------------------------------
 
 `cabal-doctest` also supports more exotic use cases where a `.cabal` file
 contains more components with doctests than just the main library, including:
@@ -81,7 +81,7 @@ this use case. However, in this scenario `Build_doctests` will generate extra
 copies of the `flags`, `pkgs`, and `module_sources` values for each additional
 named component.
 
-Simplest approach is to use `x-doctest-components` field, for example:
+The simplest approach is to use `x-doctest-components` field in `.cabal`:
 ```
 x-doctest-components: lib lib:internal exe:example
 ```
@@ -93,7 +93,7 @@ module Main where
 
 import Build_doctests (Component (..), components)
 import Data.Foldable (for_)
-import System.Environment.Compat (unsetEnv)
+import System.Environment (unsetEnv)
 import Test.DocTest (doctest)
 
 main :: IO ()
@@ -106,12 +106,10 @@ main = for_ components $ \(Component name flags pkgs sources) -> do
     doctest args
 ```
 
-There is also a more explicit approach: if you have an executable named `foo`,
-then separate values named `flags_exe_foo`, `pkgs_exe_foo`, and `module_sources_exe_foo` will
-be generated in `Build_doctests`. If the name has hyphens in it
-(e.g., `my-exe`), then `cabal-doctest` will convert those hyphens to
-underscores (e.g., you'd get `flags_my_exe`, `pkgs_my_exe`, and
-`module_sources_my_exe`).
+There is also a more explicit approach: if you have an executable named `foo`, then
+`Build_doctest` will contain `flags_exe_foo`, `pkgs_exe_foo`, and `module_sources_exe_foo`.
+If the name has hyphens in it (e.g., `my-exe`), `cabal-doctest` will convert them to
+underscores (e.g., you'd get `flags_my_exe`, `pkgs_my_exe`, `module_sources_my_exe`).
 Internal library `bar` values will have a `_lib_bar` suffix.
 
 An example testsuite driver for this use case might look like this:
@@ -123,7 +121,7 @@ import Build_doctests
        (flags,            pkgs,            module_sources,
         flags_exe_my_exe, pkgs_exe_my_exe, module_sources_exe_my_exe)
 import Data.Foldable (traverse_)
-import System.Environment.Compat (unsetEnv)
+import System.Environment (unsetEnv)
 import Test.DocTest
 
 main :: IO ()
@@ -141,14 +139,15 @@ main = do
     exeArgs = flags_exe_my_exe ++ pkgs_exe_my_exe ++ module_sources_exe_my_exe
 ```
 
-See
-[this example](https://github.com/phadej/cabal-doctest/tree/master/multiple-components-example)
-for more details.
+See the [multiple-components-example][].
+
+[multiple-components-example]: https://github.com/ulidtko/cabal-doctest/tree/master/multiple-components-example
+
 
 Additional configuration
 ------------------------
 
-The `cabal-doctest` based `Setup.hs` supports few extensions fields
+The `cabal-doctest` based `Setup.hs` supports a few extensions fields
 in `pkg.cabal` files to customise the `doctest` runner behaviour, without
 customising the default `doctest.hs`.
 
@@ -158,28 +157,27 @@ test-suite doctests:
     x-doctest-options: -fdiagnostics-color=never
   x-doctest-source-dirs: test
   x-doctest-modules: Servant.Utils.LinksSpec
-
-  ...
 ```
 
 * `x-doctest-options` Additional arguments passed into `doctest` command.
 * `x-doctest-modules` Additional modules to `doctest`. May be useful if you
-  have `doctest` in test or executables (i.e not default library complonent).
+  have `doctest` in test or executables (i.e not default library component).
 * `x-doctest-src-dirs` Additional source directories to look for the modules.
 
 Notes
 -----
 
-* Recent versions of `Cabal` (for instance, 2.0) can choose to build a
+* If support for cabal-install < 2.4 is required, you'll have to
+  add `Cabal` to `setup-depends`; see issue [haskell/cabal#4288][].
+
+* Some versions of `Cabal` (for instance, 2.0) can choose to build a
   package's `doctest` test suite _before_ the library. However, in order for
   `cabal-doctest` to work correctly, the library _must_ be built first, as
   `doctest` relies on the presence of generated files that are only created
-  when the library is built. See
-  [#19](https://github.com/phadej/cabal-doctest/issues/19).
+  when the library is built. See [#19][].
 
   A hacky workaround for this problem is to depend on the library itself in a
-  `doctests` test suite. See
-  [the simple example's .cabal file](https://github.com/phadej/cabal-doctest/blob/master/simple-example/simple-example.cabal)
+  `doctests` test suite. See [simple-example.cabal][]
   for a demonstration. (This assumes that the test suite has the ability to
   read build artifacts from the library, a separate build component. In
   practice, this assumption holds, which is why this library works at all.)
@@ -189,8 +187,13 @@ Notes
   manually.
 
 * `stack` respects `custom-setup` starting from version 1.3.3. Before that
-  you have to use `explicit-setup-deps` setting in your `stack.yaml`.
-  ([stack/GH-2094](https://github.com/commercialhaskell/stack/issues/2094))
+  you have to use `explicit-setup-deps` setting in your `stack.yaml`;
+  [stack#2094][].
+
+* With base < 4.7 (GHC < 7.8, pre-2014), `System.Environment.unsetEnv` function
+  will need to be imported from `base-compat` library. It is already in transitive
+  dependencies of `doctest`. Simply declare the dependency upon `base-compat`, and
+  then `import System.Environment.Compat (unsetEnv)` if you need that old GHC.
 
 * You can use `x-doctest-options` field in `test-suite doctests` to
   pass additional flags to the `doctest`.
@@ -213,22 +216,22 @@ Notes
   to the `doctest` command.  This way, `QuickCheck` and `template-haskell` are
   available to `doctest`, otherwise you'll get errors like:
 
-```
+  ```
     Variable not in scope:
       mkName
         :: [Char]
            -> template-haskell-2.11.1.0:Language.Haskell.TH.Syntax.Name
-```
+  ```
 
-or
+  or
 
-```
+  ```
     Variable not in scope:
       polyQuickCheck
         :: Language.Haskell.TH.Syntax.Name -> Language.Haskell.TH.Lib.ExpQ
-```
+  ```
 
-* From version 2, Stack sets the `GHC_ENVRIONMENT` variable, and GHC
+* From version 2, Stack sets the `GHC_ENVIRONMENT` variable, and GHC
   (as invoked by `doctest`) will pick that up. This is undesirable:
   `cabal-doctest` passes all the necessary information on the command
   line already, and can lead to ambiguous module errors as GHC will
@@ -241,40 +244,50 @@ or
   or earlier and seeing ambiguous module errors or other mysterious
   failures, try manually unsetting `GHC_ENVIRONMENT` before invoking
   `doctest`.
-  
+
  * If you are on Nix. `doctest` will not pick up your version of GHC if you
    don't point it towards it, and therefore will result in "cannot satisfy -package-id" errors.
    You will need to set `NIX_GHC` and `NIX_GHC_LIBDIR` within your environment in order
    for doctest to pick up your GHC. Put the following in `shell.nix` and run `nix-shell`.
-```nix
-# shell.nix
-{ pkgs ? import <nixpkgs> {} }:
-let
-  myHaskell = (pkgs.haskellPackages.ghcWithHoogle (p: with p; [
-    # Put your dependencies here
-    containers
-    hslogger
-  ]));
-in
-pkgs.mkShell {
-  name = "myPackage";
-  
-  # These environment variables are important. Without these,
-  # doctest doesn't pick up nix's version of ghc, and will fail
-  # claiming it can't find your dependencies
-  shellHook = ''
-    export NIX_GHC=${myHaskell}/bin/ghc
-    export NIX_GHC_LIBDIR=${myHaskell}/lib/ghc-8.10.7
-  '';
-  buildInputs = with pkgs; [ 
-    myHaskell
-  ];
-}
-```
+
+   ```nix
+   # shell.nix
+   { pkgs ? import <nixpkgs> {} }:
+   let
+     myHaskell = (pkgs.haskellPackages.ghcWithHoogle (p: with p; [
+       # Put your dependencies here
+       containers
+       hslogger
+     ]));
+   in
+   pkgs.mkShell {
+     name = "myPackage";
+
+     # These environment variables are important. Without these,
+     # doctest doesn't pick up nix's version of ghc, and will fail
+     # claiming it can't find your dependencies
+     shellHook = ''
+       export NIX_GHC=${myHaskell}/bin/ghc
+       export NIX_GHC_LIBDIR=${myHaskell}/lib/ghc-8.10.7
+     '';
+     buildInputs = with pkgs; [
+       myHaskell
+     ];
+   }
+   ```
+
+[#19]: https://github.com/ulidtko/cabal-doctest/issues/19
+[haskell/cabal#4288]: https://github.com/haskell/cabal/issues/4288
+[stack#2094]: https://github.com/commercialhaskell/stack/issues/2094
 
 Copyright
 ---------
 
 Copyright 2017 Oleg Grenrus.
+
+With contributions from:
+ * Ryan Scott
+ * Andreas Abel
+ * Max Ulidtko
 
 Available under the BSD 3-clause license.

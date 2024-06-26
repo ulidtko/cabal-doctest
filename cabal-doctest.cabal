@@ -1,23 +1,23 @@
 name:               cabal-doctest
-version:            1.0.9
-x-revision:         4
+version:            1.0.10
+-- x-revision:      0
 synopsis:           A Setup.hs helper for running doctests
 description:
   As of now (end of 2021), there isn't @cabal doctest@
   command. Yet, to properly work, @doctest@ needs plenty of configuration.
   This library provides the common bits for writing a custom @Setup.hs@.
 
-homepage:           https://github.com/haskellari/cabal-doctest
+homepage:           https://github.com/ulidtko/cabal-doctest
 license:            BSD3
 license-file:       LICENSE
 author:             Oleg Grenrus <oleg.grenrus@iki.fi>
-maintainer:         Andreas Abel
-copyright:          (c) 2017 Oleg Grenrus
+maintainer:         Max Ulidtko <ulidtko@gmail.com>
+copyright:          (c) 2017-2020 Oleg Grenrus, 2020- package maintainers
 category:           Distribution
 build-type:         Simple
 cabal-version:      >=1.10
 extra-source-files:
-  ChangeLog.md
+  changelog.md
   README.md
 
 tested-with:
@@ -33,33 +33,30 @@ tested-with:
   GHC == 8.4.4
   GHC == 8.2.2
   GHC == 8.0.2
-  -- 2023-10-14: Drop CI for GHC 7.x
-  -- GHC == 7.10.3
-  -- GHC == 7.8.4
-  -- GHC == 7.6.3
-  -- GHC == 7.4.2
-  -- GHC == 7.2.2
-  -- GHC == 7.0.4
+  -- 2023-10-14: Dropped CI support for GHC 7.x
 
 source-repository head
   type:     git
-  location: https://github.com/haskellari/cabal-doctest
+  location: https://github.com/ulidtko/cabal-doctest
 
 library
   exposed-modules:  Distribution.Extra.Doctest
   other-modules:
   other-extensions:
   build-depends:
-    -- upper-bounds are major-major only, unless there is evidence for build failures
-      base       >=4.3  && <5
+    -- NOTE: contrary to PVP, some upper-bounds are intentionally set to major-major.
+    -- This is to increase signal-to-noise ratio of CI failures. "Too tight bounds"
+    -- is an extremely boring (and practically guaranteed, repeatedly) failure mode.
+    -- OTOH, genuine build failures due to breaking changes in dependencies are:
+    --  1) unlikely to occur, as this package is so small, moreso regularly;
+    --  2) best caught in CI pipelines that don't induce alert fatigue.
+    -- In any case, revisions may set tighter bounds afterwards, if exceptional
+    -- circumstances would warrant that.
+      base       >=4.9  && <5
     , Cabal      >=1.10 && <3.14
-    , directory
-    , filepath
+    , directory  >=1.3  && <2
+    , filepath   >=1.4  && <2
 
   hs-source-dirs:   src
   default-language: Haskell2010
   ghc-options:      -Wall
-
-  if !impl(ghc >=7.2)
-    -- Work around a pattern-match coverage checking bug in GHC 7.0
-    ghc-options: -fno-warn-overlapping-patterns
