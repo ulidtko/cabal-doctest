@@ -1,3 +1,11 @@
+# 1.0.10 -- 2024-06-26
+
+* Maintainership hand-over. See [cabal-doctest#79][].
+* Support GHC 9.4, 9.6, 9.8, 9.10.
+* Drop support & CI for GHC < 8.0.
+
+[cabal-doctest#79]: https://github.com/ulidtko/cabal-doctest/issues/79
+
 # 1.0.9 -- 2021-11-07
 
 * Support `GHC-9.2`, `base-4.16`, and `Cabal-3.6` (thanks Alistair Burrowes).
