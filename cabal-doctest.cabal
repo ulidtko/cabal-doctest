@@ -17,7 +17,7 @@ category:           Distribution
 build-type:         Simple
 cabal-version:      >=1.10
 extra-source-files:
-  ChangeLog.md
+  changelog.md
   README.md
 
 tested-with:
