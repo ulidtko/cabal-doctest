@@ -50,11 +50,18 @@ library
   other-modules:
   other-extensions:
   build-depends:
-    -- upper-bounds are major-major only, unless there is evidence for build failures
+    -- NOTE: contrary to PVP, some upper-bounds are intentionally set to major-major.
+    -- This is to increase signal-to-noise ratio of CI failures. "Too tight bounds"
+    -- is an extremely boring (and practically guaranteed, repeatedly) failure mode.
+    -- OTOH, genuine build failures due to breaking changes in dependencies are:
+    --  1) unlikely to occur, as this package is so small, moreso regularly;
+    --  2) best caught in CI pipelines that don't induce alert fatigue.
+    -- In any case, revisions may set tighter bounds afterwards, if exceptional
+    -- circumstances would warrant that.
       base       >=4.3  && <5
     , Cabal      >=1.10 && <3.14
-    , directory
-    , filepath
+    , directory  >=1.3  && <2
+    , filepath   >=1.4  && <2
 
   hs-source-dirs:   src
   default-language: Haskell2010
