@@ -3,9 +3,54 @@ cabal-doctest
 
 [![Hackage](https://img.shields.io/hackage/v/cabal-doctest.svg)](https://hackage.haskell.org/package/cabal-doctest) [![Haskell-CI](https://github.com/ulidtko/cabal-doctest/actions/workflows/haskell-ci.yml/badge.svg?branch=master)](https://github.com/ulidtko/cabal-doctest/actions/workflows/haskell-ci.yml)
 
-A `Setup.hs` helper for running [doctests][].
+A `Setup.hs` helper for running [doctests][doctest].
 
-[doctests]: https://github.com/sol/doctest#readme
+[doctest]: https://github.com/sol/doctest#readme
+
+Why this exists
+---------------
+
+**Doctesting** is a nifty technique that stimulates 3 good things to happen:
+
+ * library documentation gains *runnable code examples* that are also tested;
+ * library test suite gains *documented usage examples* as "tests for free";
+ * get both of the above for the price of one.
+
+That's what the [doctest][] tool does — not this package! — just for clarity.
+Off the shelf, `doctest` doesn't require any package management mumbo-jumbo:
+you just run it on a source file with haddocks with doctests.
+
+Issues come in when library authors and maintainers wish to integrate doctests
+into CI pipelines. When doctests start to require dependencies or non-default
+compiler flags: that's when it gets hairy. There, if you want `stack test` and/or
+`cabal test` to run doctests too with minimal shenanigans, then read on.
+
+Among different available approaches, this package `cabal-doctest` helps with
+one, which is known as [custom setup][], `build-type: Custom` more precisely.
+You should stick to the default `build-type: Simple`, unless you know what
+you're doing.
+
+In a nutshell, this custom Setup.hs shim generates a module `Build_doctests`
+that allows your doctest driver `test-suite` to look like this:
+
+```haskell
+module Main where
+
+import Build_doctests (flags, pkgs, module_sources)
+import Test.Doctest (doctest)
+
+main :: IO ()
+main = doctest (flags ++ pkgs ++ module_sources)
+```
+
+More detailed examples below.
+
+Regardless of the name, this **also works with Stack**.
+
+For old versions of stack, cabal-install, GHC, see [caveats][#notes] below.
+
+[custom setup]: https://cabal.readthedocs.io/en/stable/cabal-package-description-file.html#pkg-field-build-type
+
 
 Simple example
 --------------
@@ -148,8 +193,8 @@ Additional configuration
 ------------------------
 
 The `cabal-doctest` based `Setup.hs` supports a few extensions fields
-in `pkg.cabal` files to customise the `doctest` runner behaviour, without
-customising the default `doctest.hs`.
+in `pkg.cabal` files to customize the `doctest` runner behavior, without
+customizing the default `doctest.hs`.
 
 ```
 test-suite doctests:
@@ -161,7 +206,7 @@ test-suite doctests:
 
 * `x-doctest-options` Additional arguments passed into `doctest` command.
 * `x-doctest-modules` Additional modules to `doctest`. May be useful if you
-  have `doctest` in test or executables (i.e not default library component).
+  have doctests in tests or executables (i.e not the default library component).
 * `x-doctest-src-dirs` Additional source directories to look for the modules.
 
 Notes
