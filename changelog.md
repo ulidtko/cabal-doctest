@@ -1,3 +1,9 @@
+# 1.0.11 -- unreleased
+
+* Support Cabal 3.14.0.0. [cabal-doctest#85][].
+
+[cabal-doctest#85]: https://github.com/ulidtko/cabal-doctest/issues/85
+
 # 1.0.10 -- 2024-06-26
 
 * Maintainership hand-over. See [cabal-doctest#79][].

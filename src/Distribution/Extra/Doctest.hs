@@ -1,5 +1,11 @@
 {-# LANGUAGE CPP               #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleInstances #-}
+#if MIN_VERSION_Cabal(3,14,0)
+{-# LANGUAGE DataKinds #-}
+#endif
+{-# LANGUAGE MultiParamTypeClasses #-}
+
 -- | See cabal-doctest README for full-fledged recipes & caveats.
 --
 -- The provided 'generateBuildModule' generates a @Build_{suffix}@ module, with
@@ -67,25 +73,28 @@ import Distribution.Simple
        (UserHooks (..), autoconfUserHooks, defaultMainWithHooks,
        simpleUserHooks)
 import Distribution.Simple.Compiler
-       (CompilerFlavor (GHC), CompilerId (..), PackageDB (..), compilerId)
+       (CompilerFlavor (GHC), CompilerId (..), compilerId)
 import Distribution.Simple.LocalBuildInfo
        (ComponentLocalBuildInfo (componentPackageDeps), LocalBuildInfo,
        compiler, withExeLBI, withLibLBI, withPackageDB, withTestLBI)
 import Distribution.Simple.Setup
-       (BuildFlags (buildDistPref, buildVerbosity),
-       HaddockFlags (haddockDistPref, haddockVerbosity), emptyBuildFlags,
+       (BuildFlags (..),
+       emptyBuildFlags,
        fromFlag)
 import Distribution.Simple.Utils
        (createDirectoryIfMissingVerbose, info)
 import Distribution.Text
        (display)
-import System.FilePath
-       ((</>))
 
 import qualified Data.Foldable    as F
                  (for_)
 import qualified Data.Traversable as T
                  (traverse)
+import qualified System.FilePath ((</>))
+
+#if MIN_VERSION_base(4,11,0)
+import Data.Functor ((<&>))
+#endif
 
 #if MIN_VERSION_Cabal(1,25,0)
 import Distribution.Simple.BuildPaths
@@ -134,6 +143,24 @@ import Distribution.Utils.Path
        (getSymbolicPath)
 #endif
 
+#if MIN_VERSION_Cabal(3,14,0)
+-- https://github.com/haskell/cabal/issues/10559
+import Distribution.Simple.Compiler
+       (PackageDB, PackageDBX (GlobalPackageDB, UserPackageDB, SpecificPackageDB))
+import Distribution.Simple.LocalBuildInfo
+       (absoluteWorkingDirLBI, interpretSymbolicPathLBI)
+import Distribution.Simple.Setup
+       (HaddockFlags, haddockCommonFlags)
+import Distribution.Utils.Path
+       (FileOrDir(..), SymbolicPath, interpretSymbolicPathAbsolute, makeRelativePathEx, makeSymbolicPath)
+import qualified Distribution.Utils.Path as SymPath ((</>))
+#else
+import Distribution.Simple.Compiler
+       (PackageDB (GlobalPackageDB, UserPackageDB, SpecificPackageDB))
+import Distribution.Simple.Setup
+       (HaddockFlags (haddockDistPref, haddockVerbosity))
+#endif
+
 #if MIN_VERSION_directory(1,2,2)
 import System.Directory
        (makeAbsolute)
@@ -142,7 +169,42 @@ import System.Directory
        (getCurrentDirectory)
 import System.FilePath
        (isAbsolute)
+#endif
 
+{- HLINT ignore "Use fewer imports" -}
+
+-------------------------------------------------------------------------------
+-- Compat
+-------------------------------------------------------------------------------
+
+#if !MIN_VERSION_base(4,11,0)
+(<&>) :: Functor f => f a -> (a -> b) -> f b
+(<&>) = flip fmap
+infixl 1 <&>
+#endif
+
+class CompatSymPath p q where
+  (</>) :: p -> FilePath -> q
+infixr 5 </>
+instance CompatSymPath FilePath FilePath where
+  (</>) = (System.FilePath.</>)
+#if MIN_VERSION_Cabal(3,14,0)
+instance CompatSymPath (SymbolicPath allowAbs ('Dir loc1))
+                       (SymbolicPath allowAbs ('Dir loc2)) where
+  dir </> name = dir SymPath.</> makeRelativePathEx name
+#endif
+
+#if MIN_VERSION_Cabal(3,14,0)
+unsymbolizePath = getSymbolicPath
+#else
+makeSymbolicPath :: FilePath -> FilePath
+makeSymbolicPath = id
+unsymbolizePath :: FilePath -> FilePath
+unsymbolizePath = id
+#endif
+
+
+#if !MIN_VERSION_directory(1,2,2)
 makeAbsolute :: FilePath -> IO FilePath
 makeAbsolute p | isAbsolute p = return p
                | otherwise    = do
@@ -216,10 +278,16 @@ addDoctestsUserHook testsuiteName uh = uh
 
 -- | Convert only flags used by 'generateBuildModule'.
 haddockToBuildFlags :: HaddockFlags -> BuildFlags
-haddockToBuildFlags f = emptyBuildFlags
+haddockToBuildFlags f =
+#if MIN_VERSION_Cabal(3,14,0)
+  emptyBuildFlags
+    { buildCommonFlags = haddockCommonFlags f }
+#else
+   emptyBuildFlags
     { buildVerbosity = haddockVerbosity f
     , buildDistPref  = haddockDistPref f
     }
+#endif
 
 data Name = NameLib (Maybe String) | NameExe String deriving (Eq, Show)
 
@@ -270,12 +338,16 @@ generateBuildModule testSuiteName flags pkg lbi = do
         | otherwise = []
 
   withTestLBI pkg lbi $ \suite suitecfg -> when (testName suite == fromString testSuiteName) $ do
-#if MIN_VERSION_Cabal(1,25,0)
+
+    -- Locate autogen dir, to put our output into.
+#if MIN_VERSION_Cabal(3,14,0)
+    let testAutogenDir = interpretSymbolicPathLBI lbi
+                       $ autogenComponentModulesDir lbi suitecfg
+#elif MIN_VERSION_Cabal(1,25,0)
     let testAutogenDir = autogenComponentModulesDir lbi suitecfg
 #else
     let testAutogenDir = autogenModulesDir lbi
 #endif
-
     createDirectoryIfMissingVerbose verbosity True testAutogenDir
 
     let buildDoctestsFile = testAutogenDir </> "Build_doctests.hs"
@@ -326,23 +398,35 @@ generateBuildModule testSuiteName flags pkg lbi = do
            let module_sources = modules
 
            -- We need the directory with the component's cabal_macros.h!
-#if MIN_VERSION_Cabal(1,25,0)
+#if MIN_VERSION_Cabal(3,14,0)
+           let compAutogenDir = interpretSymbolicPathLBI lbi
+                              $ autogenComponentModulesDir lbi compCfg
+#elif MIN_VERSION_Cabal(1,25,0)
            let compAutogenDir = autogenComponentModulesDir lbi compCfg
 #else
            let compAutogenDir = autogenModulesDir lbi
 #endif
 
            -- Lib sources and includes
-           iArgsNoPrefix
-              <- mapM makeAbsolute
-               $ compAutogenDir           -- autogenerated files
-               : (distPref ++ "/build")   -- preprocessed files (.hsc -> .hs); "build" is hardcoded in Cabal.
-#if MIN_VERSION_Cabal(3,5,0)
-               : map getSymbolicPath (hsSourceDirs compBI)
+           let iArgsSymbolic =
+                  makeSymbolicPath compAutogenDir -- autogen dir
+                -- preprocessed files (.hsc -> .hs); "build" is hardcoded in Cabal.
+                : (distPref </> "build")
+#if MIN_VERSION_Cabal(3,14,0)
+                : hsSourceDirs compBI
+#elif MIN_VERSION_Cabal(3,5,0)
+                : (hsSourceDirs compBI <&> getSymbolicPath)
 #else
-               : hsSourceDirs compBI
+                : hsSourceDirs compBI
 #endif
+#if MIN_VERSION_Cabal(3,14,0)
+           pkgWorkdir <- absoluteWorkingDirLBI lbi
+           let iArgsNoPrefix = iArgsSymbolic <&> interpretSymbolicPathAbsolute pkgWorkdir
+           let includeArgs = includeDirs compBI <&> ("-I"++) . interpretSymbolicPathAbsolute pkgWorkdir
+#else
+           iArgsNoPrefix <- mapM makeAbsolute iArgsSymbolic
            includeArgs <- mapM (fmap ("-I"++) . makeAbsolute) $ includeDirs compBI
+#endif
            -- We clear all includes, so the CWD isn't used.
            let iArgs' = map ("-i"++) iArgsNoPrefix
                iArgs  = "-i" : iArgs'
@@ -360,11 +444,11 @@ generateBuildModule testSuiteName flags pkg lbi = do
            -- even though the main-is module is named Main, its filepath might
            -- actually be Something.hs. To account for this possibility, we simply
            -- pass the full path to the main-is module instead.
-           mainIsPath <- T.traverse (findFileEx verbosity iArgsNoPrefix) (compMainIs comp)
+           mainIsPath <- T.traverse (findFileEx verbosity iArgsSymbolic) (compMainIs comp)
 
            let all_sources = map display module_sources
                              ++ additionalModules
-                             ++ maybeToList mainIsPath
+                             ++ maybeToList (mainIsPath <&> unsymbolizePath)
 
            let component = Component
                 (mbCompName comp)
@@ -462,11 +546,11 @@ generateBuildModule testSuiteName flags pkg lbi = do
     packageDbArgsConf :: [PackageDB] -> [String]
     packageDbArgsConf dbstack = case dbstack of
       (GlobalPackageDB:UserPackageDB:dbs) -> concatMap specific dbs
-      (GlobalPackageDB:dbs)               -> ("-no-user-package-conf")
+      (GlobalPackageDB:dbs)               -> "-no-user-package-conf"
                                            : concatMap specific dbs
       _ -> ierror
       where
-        specific (SpecificPackageDB db) = [ "-package-conf=" ++ db ]
+        specific (SpecificPackageDB db) = [ "-package-conf=" ++ unsymbolizePath db ]
         specific _                      = ierror
         ierror = error $ "internal error: unexpected package db stack: "
                       ++ show dbstack
@@ -484,7 +568,7 @@ generateBuildModule testSuiteName flags pkg lbi = do
       dbs                                 -> "-clear-package-db"
                                            : concatMap single dbs
      where
-       single (SpecificPackageDB db) = [ "-package-db=" ++ db ]
+       single (SpecificPackageDB db) = [ "-package-db=" ++ unsymbolizePath db ]
        single GlobalPackageDB        = [ "-global-package-db" ]
        single UserPackageDB          = [ "-user-package-db" ]
        isSpecific (SpecificPackageDB _) = True
