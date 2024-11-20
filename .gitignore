@@ -2,3 +2,4 @@ dist/
 dist-newstyle/
 .stack-work/
 .ghc.environment.*
+cabal.project.local

@@ -13,3 +13,7 @@ packages: . simple-example multiple-components-example
 -- allow-newer: *:ghc
 -- allow-newer: *:base
 -- allow-newer: *:Cabal
+
+tests: true
+
+-- constraints: Cabal==3.14.*
