@@ -49,11 +49,6 @@ module Distribution.Extra.Doctest (
     generateBuildModule,
     ) where
 
--- Hacky way to suppress few deprecation warnings.
-#if MIN_VERSION_Cabal(1,24,0)
-#define InstalledPackageId UnitId
-#endif
-
 import Control.Monad
        (when)
 import Data.IORef
@@ -65,7 +60,7 @@ import Data.Maybe
 import Data.String
        (fromString)
 import Distribution.Package
-       (InstalledPackageId, Package (..))
+       (UnitId, Package (..))
 import Distribution.PackageDescription
        (BuildInfo (..), Executable (..), GenericPackageDescription,
        Library (..), PackageDescription, TestSuite (..))
@@ -596,9 +591,9 @@ generateBuildModule testSuiteName flags pkg lbi = do
 -- | In compat settings it's better to omit the type-signature
 testDeps :: ComponentLocalBuildInfo -> ComponentLocalBuildInfo
 #if MIN_VERSION_Cabal(2,0,0)
-         -> [(InstalledPackageId, MungedPackageId)]
+         -> [(UnitId, MungedPackageId)]
 #else
-         -> [(InstalledPackageId, PackageId)]
+         -> [(UnitId, PackageId)]
 #endif
 testDeps xs ys = nub $ componentPackageDeps xs ++ componentPackageDeps ys
 
