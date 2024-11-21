@@ -1,7 +1,7 @@
 cabal-doctest
 =============
 
-[![Hackage](https://img.shields.io/hackage/v/cabal-doctest.svg)](https://hackage.haskell.org/package/cabal-doctest) [![Haskell-CI](https://github.com/ulidtko/cabal-doctest/actions/workflows/haskell-ci.yml/badge.svg?branch=master)](https://github.com/ulidtko/cabal-doctest/actions/workflows/haskell-ci.yml)
+[![Hackage](https://img.shields.io/hackage/v/cabal-doctest.svg)](https://hackage.haskell.org/package/cabal-doctest) [![Haskell-CI](https://github.com/ulidtko/cabal-doctest/actions/workflows/haskell-ci.yml/badge.svg?branch=master)](https://github.com/ulidtko/cabal-doctest/actions/workflows/haskell-ci.yml) [![stack test](https://github.com/ulidtko/cabal-doctest/actions/workflows/stack-test.yml/badge.svg)](https://github.com/ulidtko/cabal-doctest/actions/workflows/stack-test.yml)
 
 A `Setup.hs` helper for running [doctests][doctest].
 
@@ -47,7 +47,7 @@ More detailed examples below.
 
 Regardless of the name, this **also works with Stack**.
 
-For old versions of stack, cabal-install, GHC, see [caveats][#notes] below.
+For old versions of stack, cabal-install, GHC, see [caveats](#notes) below.
 
 [custom setup]: https://cabal.readthedocs.io/en/stable/cabal-package-description-file.html#pkg-field-build-type
 

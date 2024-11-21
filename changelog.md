@@ -1,8 +1,10 @@
-# 1.0.11 -- unreleased
+# 1.0.11 -- 2024-11-22
 
 * Support Cabal 3.14.0.0. [cabal-doctest#85][].
-* Fix `stack test` of examples.
+* Motivate the package in README [cabal-doctest#43][].
+* Fix `stack test` of examples, add CI integration.
 
+[cabal-doctest#43]: https://github.com/ulidtko/cabal-doctest/issues/43
 [cabal-doctest#85]: https://github.com/ulidtko/cabal-doctest/issues/85
 
 # 1.0.10 -- 2024-06-26
