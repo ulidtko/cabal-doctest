@@ -1,9 +1,9 @@
 name:               cabal-doctest
-version:            1.0.10
+version:            1.0.11
 -- x-revision:      0
 synopsis:           A Setup.hs helper for running doctests
 description:
-  As of now (end of 2021), there isn't @cabal doctest@
+  As of now (end of 2024), there isn't @cabal doctest@
   command. Yet, to properly work, @doctest@ needs plenty of configuration.
   This library provides the common bits for writing a custom @Setup.hs@.
 
