@@ -1,0 +1,47 @@
+#--
+#-- https://github.com/haskell/hie-bios/issues/350
+#--
+cradle:
+  multi:
+    - path: src
+      config:
+        cradle:
+          cabal:
+    - path: simple-example/src
+      config:
+        cradle:
+          cabal:
+    - path: simple-example/tests
+      config:
+        cradle:
+          cabal:
+    - path: multiple-components-example/src
+      config:
+        cradle:
+          cabal:
+    - path: multiple-components-example/tests
+      config:
+        cradle:
+          cabal:
+    - path: multiple-components-example/exe
+      config:
+        cradle:
+          cabal:
+
+    - path: simple-example/Setup.hs
+      config:
+        cradle:
+          direct:
+            arguments: ["-package Cabal", "-package base"]
+
+    - path: multiple-components-example/Setup.hs
+      config:
+        cradle:
+          direct:
+            arguments: ["-package Cabal", "-package base"]
+
+    - path: .github/scripts/stackage-lts-map.hs
+      config:
+        cradle:
+          cabal:
+        dependencies: [ .github/scripts/stackage-lts-map.hs ]

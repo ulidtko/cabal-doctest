@@ -1,0 +1,138 @@
+name: stack test
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+permissions:
+  contents: read
+
+env:
+  #-- increment this to force-rebuild the cache of dependency packages
+  MANUAL_CACHE_RESET_TESTDEPS: r0
+  #-- increment this to force-rebuild the cache of cabal hackage index
+  MANUAL_CACHE_RESET_HACKAGE: r0
+
+jobs:
+  stack-test:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        ghc:
+          # - 9.10.1 # LTS absent yet
+          # - 9.8.3 # not in ghcup yet; LTS nightly available
+          - 9.6.6
+          - 9.4.8
+          - 9.2.8
+          - 9.0.2
+          - 8.10.7
+          - 8.8.4
+          - 8.6.5
+          - 8.4.4
+          #-- Stack no longer supports Cabal <2.2.
+          #- 8.2.2
+          #- 8.0.2
+
+    name: with GHC ${{ matrix.ghc }}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    #-- ghcup, cached
+
+    - name: Cache GHC installation
+      uses: actions/cache@v4
+      id: ghcup
+      with:
+        path: |
+          ~/.ghcup/bin/*
+          ~/.ghcup/cache/*
+          ~/.ghcup/config.yaml
+          ~/.ghcup/ghc/${{ matrix.ghc }}
+        key: CI-ghcup-${{ matrix.ghc }}
+
+    - name: ghcup
+      uses: haskell-actions/setup@v2
+      if: steps.ghcup.outputs.cache-hit != 'true'
+      with:
+        ghc-version: ${{ matrix.ghc }}
+        enable-stack: true
+        stack-version: latest
+
+    - name: GHCup diagnostics
+      run: |
+        ghcup list
+        du -csh ~/.ghcup/*
+        ls -ld ~/.ghcup/*/*
+
+    #-- stack pantry, cached
+
+    - name: Cache Pantry (Stackage package index)
+      id: pantry
+      uses: actions/cache@v4
+      with:
+        path: ~/.stack/pantry
+        key: CI-pantry-${{ env.STACK_LTS }}
+
+    - name: Recompute Stackage package index
+      if: steps.pantry.outputs.cache-hit != 'true'
+      run: stack update # populates ~/.stack/pantry
+
+    - name: ~/.stack cache diagnostics
+      run: du -csh -t 64k ~/.stack/*
+
+    #-- for the matrix, we'll need a map GHC version -> Stack LTS resolver
+    - name: Cached LTS-GHC map
+      id: ltsmap
+      uses: actions/cache@v4
+      with:
+        path: lts-resolver-map.yaml
+        key: lts-resolver-map
+    - name: Regenerate LTS-GHC map
+      if: steps.ltsmap.outputs.cache-hit != 'true'
+      run: |
+        timeout 50 .github/scripts/stackage-lts-map.py \
+          | sort -n | tee lts-resolver-map.yaml
+
+    - name: Configure Stack
+      run: |
+        #-- set resolver tag based on GHC version from the matrix
+        selected="$(yq '.["${{ matrix.ghc }}"]' lts-resolver-map.yaml)"
+        test -z $selected -o $selected == null && {
+          echo "Could not find LTS snapshot for GHC version ${{ matrix.ghc }}"
+          echo "Version map:"; cat lts-resolver-map.yaml
+          exit 1
+        } >&2
+        stack config set resolver $selected
+        stack config set system-ghc true --global
+        stack config set install-ghc false --global
+
+    #-- not much deps in this package; however Cabal is a large one. cache, too
+
+    - name: Cache Haskell dependencies
+      uses: actions/cache@v4
+      env:
+        MANUAL_RESET: ${{ env.MANUAL_CACHE_RESET_TESTDEPS }}
+      with:
+        path: |
+          ~/.stack/stack.sqlite3
+          ~/.stack/snapshots
+        key: CI-testdeps-${{ env.MANUAL_RESET }}-lock${{ hashFiles('**/stack.yaml.lock') }}
+
+    - name: ~/.stack cache diagnostics
+      run: du -csh -t 64k ~/.stack/*
+
+    #-- compiling time!
+
+    - name: Build dependencies
+      run: stack build --test --only-dependencies
+
+    - name: Compile project & examples
+      run: stack build --test --no-run-tests
+
+    - name: Run tests
+      run: stack test

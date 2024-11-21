@@ -35,6 +35,18 @@ custom-setup
       base           < 5
     , cabal-doctest  >=1.0.9 && <1.1
 
+    -- Declaring this setup-dep fixes `stack build`. NOTE: Cabal API is not used directly
+    -- in the examples' Setup.hs! Instead, indirectly through wrappings of cabal-doctest.
+    --
+    -- When copying the example, you may of course delete this note, and start importing
+    -- Cabal stuff directly from Setup.hs.
+    --  ! Make sure to set a tighter bound, e.g. Cabal <3.16, here in setup-depends !
+    -- as soon as you do that.
+    , Cabal >= 1.24 && <4
+    -- > Warning: [...] Each major release of the 'Cabal' package changes the API
+    -- > in various ways and most packages will need some changes to compile with it.
+    -- > If you are not sure what upper bound to use then use the next major version.
+
 library
   exposed-modules:    Example
   default-extensions:
@@ -66,7 +78,7 @@ test-suite doctests
     , base-compat                  >=0.10.5 && <1
     , doctest                      >=0.15   && <1
     , multiple-components-example
-    , QuickCheck                   >=2.12   && <3
+    , QuickCheck                   >=2.10   && <3
     , template-haskell
 
   ghc-options:          -Wall -threaded

@@ -1,6 +1,7 @@
 # 1.0.11 -- unreleased
 
 * Support Cabal 3.14.0.0. [cabal-doctest#85][].
+* Fix `stack test` of examples.
 
 [cabal-doctest#85]: https://github.com/ulidtko/cabal-doctest/issues/85
 
