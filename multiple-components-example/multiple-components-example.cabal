@@ -63,6 +63,7 @@ executable my-exe
                     Paths_multiple_components_example
   build-depends:
       base
+    , base-compat                  >=0.10.5 && <1
     , multiple-components-example
 
   ghc-options:      -Wall -threaded
