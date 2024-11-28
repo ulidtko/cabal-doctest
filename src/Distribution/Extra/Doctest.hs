@@ -379,12 +379,9 @@ generateBuildModule testSuiteName flags pkg lbi = do
           $ lookup "x-doctest-source-dirs"
           $ customFieldsBI testBI
 
-    additionalDirs <- mapM (fmap ("-i" ++) . makeAbsolute) additionalDirs'
+    additionalDirs <- fmap (fmap ("-i" ++) . (++ additionalDirs')) $ mapM makeAbsolute additionalDirs'
 
-    -- Next, for each component (library or executable), we get to Build_doctests
-    -- the sets of flags needed to run doctest on that component.
-    let getBuildDoctests withCompLBI mbCompName compExposedModules compMainIs compBuildInfo =
-         withCompLBI pkg lbi $ \comp compCfg -> do
+    let recordComponent mbCompName compExposedModules compMainIs compBuildInfo comp compCfg = do
            let compBI = compBuildInfo comp
 
            -- modules
@@ -441,7 +438,8 @@ generateBuildModule testSuiteName flags pkg lbi = do
            -- pass the full path to the main-is module instead.
            mainIsPath <- T.traverse (findFileEx verbosity iArgsSymbolic) (compMainIs comp)
 
-           let all_sources = map display module_sources
+           let all_sources = filter (/= "Build_doctests")
+                             $ map display module_sources
                              ++ additionalModules
                              ++ maybeToList (mainIsPath <&> unsymbolizePath)
 
@@ -463,9 +461,12 @@ generateBuildModule testSuiteName flags pkg lbi = do
            -- modify IORef, append component
            modifyIORef componentsRef (\cs -> cs ++ [component])
 
-    -- For now, we only check for doctests in libraries and executables.
-    getBuildDoctests withLibLBI mbLibraryName           exposedModules (const Nothing)     libBuildInfo
-    getBuildDoctests withExeLBI (NameExe . executableName) (const [])     (Just . modulePath) buildInfo
+    -- record Build_doctests flags for test component
+    recordComponent (const $ NameExe testSuiteName) (const []) (const Nothing) testBuildInfo suite suitecfg
+    -- record Build_doctests flags for library component
+    withLibLBI pkg lbi $ recordComponent mbLibraryName exposedModules (const Nothing) libBuildInfo
+    -- record Build_doctests flags for executable component
+    withExeLBI pkg lbi $ recordComponent (NameExe . executableName) (const []) (Just . modulePath) buildInfo
 
     components <- readIORef componentsRef
     F.for_ components $ \(Component cmpName cmpPkgs cmpFlags cmpSources) -> do
