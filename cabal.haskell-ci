@@ -9,3 +9,15 @@ haddock: >= 9.4
 
 -- Workaround for https://github.com/haskell/cabal/issues/9917
 installed: +all -Cabal -Cabal-syntax
+
+-- In the provided examples (which also double-duty as tests in CI), we have
+-- a dependency onto base-compat, for System.Environment.Compat.unsetEnv.
+--
+-- Depending on base version we're compiling against, it may or may not
+-- get flagged with -Wunused-packages. (Does trigger on GHC 9.4+)
+--
+-- That dependency is "free"; as in, it is in any case already present in
+-- the transitive dependency closure, via cabal-doctest itself.
+--
+-- Thus, disable -Werror. https://github.com/haskell-CI/haskell-ci/pull/789
+error-unused-packages: False

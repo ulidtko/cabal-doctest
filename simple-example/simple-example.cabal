@@ -9,7 +9,7 @@ homepage:      https://github.com/phadej/cabal-doctest
 license:       BSD3
 license-file:  LICENSE
 author:        Oleg Grenrus <oleg.grenrus@iki.fi>
-maintainer:    Andreas Abel
+maintainer:    Max Ulidtko <ulidtko@gmail.com>
 copyright:     (c) 2017 Oleg Grenrus
 category:      Example
 build-type:    Custom
