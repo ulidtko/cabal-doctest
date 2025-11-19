@@ -23,9 +23,9 @@ jobs:
     strategy:
       matrix:
         ghc:
-          # - 9.10.1 # LTS absent yet
-          # - 9.8.3 # not in ghcup yet; LTS nightly available
-          - 9.6.6
+          - 9.10.3
+          - 9.8.4
+          - 9.6.7
           - 9.4.8
           - 9.2.8
           - 9.0.2
