@@ -11,15 +11,15 @@ homepage:      https://github.com/phadej/cabal-doctest
 license:       BSD3
 license-file:  LICENSE
 author:        Oleg Grenrus <oleg.grenrus@iki.fi>
-maintainer:    Andreas Abel
+maintainer:    Max Ulidtko <ulidtko@gmail.com>
 copyright:     (c) 2017 Oleg Grenrus
 category:      Example
 build-type:    Custom
 
 tested-with:
-  GHC == 9.10.1
-  GHC == 9.8.2
-  GHC == 9.6.5
+  GHC == 9.10.3
+  GHC == 9.8.4
+  GHC == 9.6.7
   GHC == 9.4.8
   GHC == 9.2.8
   GHC == 9.0.2

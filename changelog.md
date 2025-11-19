@@ -1,3 +1,9 @@
+# 1.0.12 -- 2025-11-19
+
+* Refresh CI & `tested-with` GHC versions.
+
+[cabal-doctest#90]: https://github.com/ulidtko/cabal-doctest/issues/90
+
 # 1.0.11 -- 2024-11-22
 
 * Support Cabal 3.14.0.0. [cabal-doctest#85][].
