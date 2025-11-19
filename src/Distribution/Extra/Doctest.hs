@@ -8,8 +8,7 @@
 
 -- | See cabal-doctest README for full-fledged recipes & caveats.
 --
--- The provided 'generateBuildModule' generates a @Build_{suffix}@ module, with
--- caller-chosen @suffix@ that is usually @"doctests"@ -- module @Build_doctests@.
+-- The provided 'generateBuildModule' generates a module named @Build_doctests@.
 --
 -- That module exports just enough compiler flags, so that doctest could be simply
 --
@@ -42,6 +41,7 @@
 -- from @setup-depends@: 'defaultMainWithDoctests' and 'defaultMainAutoconfWithDoctests'.
 --
 module Distribution.Extra.Doctest (
+    TestSuiteName,
     defaultMainWithDoctests,
     defaultMainAutoconfWithDoctests,
     addDoctestsUserHook,
@@ -221,6 +221,10 @@ mkVersion ds = Version ds []
 -- Mains
 -------------------------------------------------------------------------------
 
+-- | This type is a 'String' which identifies a test-suite in your cabal-file;
+-- the one you'll be running doctest from.
+type TestSuiteName = String
+
 -- | A default @Setup.hs@ main with doctests:
 --
 -- @
@@ -230,8 +234,15 @@ mkVersion ds = Version ds []
 -- main :: IO ()
 -- main = defaultMainWithDoctests "doctests"
 -- @
+--
+-- The argument @"doctests"@ identifies a test-suite in your cabal-file; the
+-- one you'll run doctest from. If you have @test-suite my-test@, you should
+-- invoke @defaultMainWithDoctests "my-test"@ in Setup.hs.
+--
+-- This argument does not change the generated module name imported from the
+-- test-driver's @Main@ -- that one always remains @import Build_doctests@.
 defaultMainWithDoctests
-    :: String  -- ^ doctests test-suite name
+    :: TestSuiteName
     -> IO ()
 defaultMainWithDoctests = defaultMainWithHooks . doctestsUserHooks
 
@@ -239,14 +250,14 @@ defaultMainWithDoctests = defaultMainWithHooks . doctestsUserHooks
 --
 -- @since 1.0.2
 defaultMainAutoconfWithDoctests
-    :: String  -- ^ doctests test-suite name
+    :: TestSuiteName
     -> IO ()
 defaultMainAutoconfWithDoctests n =
     defaultMainWithHooks (addDoctestsUserHook n autoconfUserHooks)
 
 -- | 'simpleUserHooks' with 'generateBuildModule' already wired-in.
 doctestsUserHooks
-    :: String  -- ^ doctests test-suite name
+    :: TestSuiteName
     -> UserHooks
 doctestsUserHooks testsuiteName =
     addDoctestsUserHook testsuiteName simpleUserHooks
@@ -256,7 +267,7 @@ doctestsUserHooks testsuiteName =
 -- This is exported for advanced custom Setup-s.
 --
 -- @since 1.0.2
-addDoctestsUserHook :: String -> UserHooks -> UserHooks
+addDoctestsUserHook :: TestSuiteName -> UserHooks -> UserHooks
 addDoctestsUserHook testsuiteName uh = uh
     { buildHook = \pkg lbi hooks flags -> do
         generateBuildModule testsuiteName flags pkg lbi
@@ -319,7 +330,7 @@ data Component = Component Name [String] [String] [String]
 --     }
 -- @
 generateBuildModule
-    :: String -- ^ doctests test-suite name
+    :: TestSuiteName
     -> BuildFlags -> PackageDescription -> LocalBuildInfo -> IO ()
 generateBuildModule testSuiteName flags pkg lbi = do
   let verbosity = fromFlag (buildVerbosity flags)
@@ -598,7 +609,7 @@ testDeps :: ComponentLocalBuildInfo -> ComponentLocalBuildInfo
 testDeps xs ys = nub $ componentPackageDeps xs ++ componentPackageDeps ys
 
 amendGPD
-    :: String -- ^ doctests test-suite name
+    :: TestSuiteName
     -> GenericPackageDescription
     -> GenericPackageDescription
 #if !(MIN_VERSION_Cabal(2,0,0))

@@ -86,9 +86,11 @@ To recap the example's code:
    main = defaultMainWithDoctests "doctests"
    ```
 
-   Assuming your test-suite is called `doctests`, this `Setup` will generate a `Build_doctests`
-   module during package build. If your test-suite goes by name `foo`,
-   `defaultMainWithDoctests "foo"` creates a `Build_foo` module.
+   This `Setup` will generate a `Build_doctests` module during package build.
+
+   Note that the module name `Build_doctests` is a fixed constant, and it is
+   not related to the `"doctests"` argument. That argument identifies which
+   `test-suite` (among those defined in your .cabal file) will run the doctest.
 
 4. Use the generated module in a testsuite, simply like so:
 
@@ -152,7 +154,7 @@ main = for_ components $ \(Component name flags pkgs sources) -> do
 ```
 
 There is also a more explicit approach: if you have an executable named `foo`, then
-`Build_doctest` will contain `flags_exe_foo`, `pkgs_exe_foo`, and `module_sources_exe_foo`.
+`Build_doctests` will contain `flags_exe_foo`, `pkgs_exe_foo`, and `module_sources_exe_foo`.
 If the name has hyphens in it (e.g., `my-exe`), `cabal-doctest` will convert them to
 underscores (e.g., you'd get `flags_my_exe`, `pkgs_my_exe`, `module_sources_my_exe`).
 Internal library `bar` values will have a `_lib_bar` suffix.

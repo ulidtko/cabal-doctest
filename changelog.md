@@ -1,5 +1,7 @@
 # 1.0.12 -- 2025-11-19
 
+* Fix documentation mistake regarding `Build_doctests` module name. [cabal-doctest#90][]
+* Clarify function signatures through a meaningful alias onto `String`.
 * Refresh CI & `tested-with` GHC versions.
 
 [cabal-doctest#90]: https://github.com/ulidtko/cabal-doctest/issues/90
