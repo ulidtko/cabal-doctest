@@ -138,6 +138,19 @@ import Distribution.Utils.Path
        (getSymbolicPath)
 #endif
 
+#if MIN_VERSION_Cabal(3,17,0)
+import Distribution.Verbosity
+       (mkVerbosity, defaultVerbosityHandles, VerbosityFlags)
+#endif
+
+#if MIN_VERSION_Cabal(2,4,0)
+import Distribution.Simple.Flag (Flag)
+#else
+import Distribution.Simple.Setup (Flag)
+#endif
+
+import Distribution.Verbosity (Verbosity)
+
 #if MIN_VERSION_Cabal(3,14,0)
 -- https://github.com/haskell/cabal/issues/10559
 import Distribution.Simple.Compiler
@@ -216,6 +229,21 @@ findFileEx _ = findFile
 mkVersion :: [Int] -> Version
 mkVersion ds = Version ds []
 #endif
+
+-- Taken from Cabal: https://github.com/haskell/cabal/blob/edb808a0b8be67885876f998a3e89c0cd5e1c3f4/changelog.d/pr-11077
+mkVerbosityCompat
+  ::
+#if MIN_VERSION_Cabal(3,17,0)
+    Flag VerbosityFlags
+#else
+    Flag Verbosity
+#endif
+  -> Verbosity
+mkVerbosityCompat v =
+#if MIN_VERSION_Cabal(3,17,0)
+  mkVerbosity defaultVerbosityHandles $
+#endif
+  fromFlag v
 
 -------------------------------------------------------------------------------
 -- Mains
@@ -333,7 +361,7 @@ generateBuildModule
     :: TestSuiteName
     -> BuildFlags -> PackageDescription -> LocalBuildInfo -> IO ()
 generateBuildModule testSuiteName flags pkg lbi = do
-  let verbosity = fromFlag (buildVerbosity flags)
+  let verbosity = mkVerbosityCompat (buildVerbosity flags)
   let distPref = fromFlag (buildDistPref flags)
 
   -- Package DBs & environments

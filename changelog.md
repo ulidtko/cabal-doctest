@@ -1,3 +1,7 @@
+# 1.0.13 -- Unreleased
+
+* Support Cabal 3.18.0.0.
+
 # 1.0.12 -- 2025-11-19
 
 * Fix documentation mistake regarding `Build_doctests` module name. [cabal-doctest#90][]
