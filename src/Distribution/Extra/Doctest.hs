@@ -140,10 +140,10 @@ import Distribution.Utils.Path
 
 #if MIN_VERSION_Cabal(3,17,0)
 import Distribution.Verbosity
-       (mkVerbosity, defaultVerbosityHandles, VerbosityFlags, Verbosity)
-import Distribution.Simple.Flag
-       (Flag)
+       (mkVerbosity, defaultVerbosityHandles, VerbosityFlags)
 #endif
+import Distribution.Simple.Flag (Flag)
+import Distribution.Verbosity (Verbosity)
 
 #if MIN_VERSION_Cabal(3,14,0)
 -- https://github.com/haskell/cabal/issues/10559
