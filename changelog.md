@@ -1,6 +1,7 @@
-# 1.0.13 -- Unreleased
+# 1.0.13 -- 2026-09-18
 
-* Support Cabal 3.18.0.0.
+* Support GHC 9.14.
+* Support Cabal 3.18.
 
 # 1.0.12 -- 2025-11-19
 
