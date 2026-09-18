@@ -224,7 +224,7 @@ mkVersion :: [Int] -> Version
 mkVersion ds = Version ds []
 #endif
 
--- Taken from Cabal: https://github.com/haskell/cabal/blob/master/changelog.d/pr-11077
+-- Taken from Cabal: https://github.com/haskell/cabal/blob/edb808a0b8be67885876f998a3e89c0cd5e1c3f4/changelog.d/pr-11077
 mkVerbosityCompat
   ::
 #if MIN_VERSION_Cabal(3,17,0)
