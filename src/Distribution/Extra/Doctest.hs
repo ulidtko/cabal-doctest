@@ -142,7 +142,13 @@ import Distribution.Utils.Path
 import Distribution.Verbosity
        (mkVerbosity, defaultVerbosityHandles, VerbosityFlags)
 #endif
+
+#if MIN_VERSION_Cabal(2,4,0)
 import Distribution.Simple.Flag (Flag)
+#else
+import Distribution.Simple.Setup (Flag)
+#endif
+
 import Distribution.Verbosity (Verbosity)
 
 #if MIN_VERSION_Cabal(3,14,0)
